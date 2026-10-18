@@ -1,0 +1,35 @@
+name: ci
+on: [push, pull_request]
+
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e twincheck_core pytest pyflakes opencv-python-headless
+      - run: cd twincheck_core && pytest -q
+      - run: python scripts/simulate_checks.py --n 100
+      - run: python -m pyflakes twincheck_core scripts calib perception dashboard/api ros2_ws/src
+
+  ros2-build:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy-ros-base
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y python3-pip ros-jazzy-cv-bridge
+      - run: pip3 install --break-system-packages -e twincheck_core
+      - run: |
+          . /opt/ros/jazzy/setup.sh
+          cd ros2_ws && colcon build --packages-skip twincheck_guide
+          . install/setup.sh
+          python3 -c "from twincheck_msgs.msg import CheckResult, RobotEvent; print('msgs ok', RobotEvent.PRE_PICK)"
+
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: cd dashboard/web && npm install && npm run build

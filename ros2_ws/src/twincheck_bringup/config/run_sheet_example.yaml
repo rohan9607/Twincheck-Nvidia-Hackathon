@@ -1,0 +1,8 @@
+# One row per trial, in order. Trial ids count up from first_trial_id (default 1).
+# The Recorder fills ground truth for these trials with scripts/ground_truth.py.
+- {object_cls: vial, pick_point: slot_1}
+- {object_cls: lid,  pick_point: slot_2}
+- {object_cls: cube, pick_point: slot_3}
+- {object_cls: vial, pick_point: slot_1}
+- {object_cls: lid,  pick_point: slot_2}
+- {object_cls: cube, pick_point: slot_3}

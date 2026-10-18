@@ -1,0 +1,26 @@
+# secrets
+.env
+*.key
+id_ed25519*
+
+# data, models, outputs (keep them on the team drive, not in git)
+data/
+models/*.pt
+models/*.engine
+models/*.png
+runs/
+calib/raw/
+calib/out/
+sim/out/
+*.mp4
+
+# build
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+dashboard/web/node_modules/
+dashboard/web/dist/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.venv/

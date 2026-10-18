@@ -1,0 +1,35 @@
+# Database + dashboard. On the Spark or a laptop:
+#   cp .env.example .env    (then set a real TWINCHECK_DASH_TOKEN and DB password)
+#   docker compose up -d
+# The DB listens on localhost only. The dashboard requires the token on every request,
+# because other teams on the same Spark can reach open ports.
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: twincheck
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: twincheck
+    ports: ["127.0.0.1:5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+
+  dashboard:
+    image: python:3.12-slim
+    restart: unless-stopped
+    depends_on: [db]
+    working_dir: /twincheck
+    environment:
+      TWINCHECK_DSN: postgresql://twincheck:${POSTGRES_PASSWORD}@db:5432/twincheck
+      TWINCHECK_DASH_TOKEN: ${TWINCHECK_DASH_TOKEN:?set TWINCHECK_DASH_TOKEN in .env}
+      TWINCHECK_IMAGE_ROOT: /twincheck
+    volumes: [".:/twincheck"]
+    ports: ["${DASH_PORT:-8090}:8090"]
+    command: >
+      sh -c "pip install -q fastapi uvicorn 'psycopg[binary]' numpy pyyaml &&
+             uvicorn dashboard.api.main:app --host 0.0.0.0 --port 8090"
+
+volumes:
+  pgdata:

@@ -1,0 +1,11 @@
+# Laptop / tools environment (not Isaac Sim, which has its own python).
+#   python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+-e ./twincheck_core
+numpy
+pyyaml
+opencv-contrib-python
+ultralytics
+psycopg[binary]
+fastapi
+uvicorn
+pytest

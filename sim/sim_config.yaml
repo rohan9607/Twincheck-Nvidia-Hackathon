@@ -1,0 +1,34 @@
+# Paths inside the provided twin. Run sim/explore_twin.py first; it prints every
+# prim and camera so you can fill these in. Everything marked TODO is a guess.
+usd_path: /workspace/fanuc_er4ia_sim/scene.usd          # TODO: the twin's main USD file
+
+robot:
+  articulation: /World/fanuc_er4ia                       # TODO
+  tool_link: /World/fanuc_er4ia/tool0                    # TODO
+  finger_joints: [finger_joint_left, finger_joint_right] # TODO: names of the SCHUNK finger joints
+  finger_open: 0.020                                     # TODO: joint value for open (m or rad)
+  finger_closed: 0.0                                     # TODO
+
+cameras:
+  overhead_a: /World/cameras/overhead_a                  # TODO
+  overhead_b: /World/cameras/overhead_b                  # TODO
+  wrist: /World/fanuc_er4ia/tool0/wrist_camera           # TODO
+  resolution: [640, 480]
+
+objects:            # prim of each object type in the twin; copies are made for clutter
+  cube: /World/objects/cube                              # TODO
+  vial: /World/objects/vial                              # TODO
+  lid: /World/objects/lid                                # TODO
+
+table:
+  # area on the table where objects are randomized, robot_base frame, mm
+  x_range_mm: [220, 400]
+  y_range_mm: [-220, 220]
+  surface_z_mm: 0.0                                      # TODO: table height in the twin
+  stage_units_per_mm: 0.001                              # USD stage in meters (check metersPerUnit)
+
+lights: []          # existing light prims to randomize; empty = add a dome light
+
+ros:
+  domain_id: 0
+  publish_hz: 15

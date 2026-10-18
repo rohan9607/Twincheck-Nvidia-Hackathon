@@ -1,0 +1,97 @@
+# TwinCheck project config: the one source of truth for objects, bins,
+# thresholds and pick points. Twin, real arm, tests and analysis all read it.
+#
+# Scenario (rework sorting cell): vials and loose lids rejected by the line's
+# inspection arrive mixed in a tray in random positions. The arm sorts them:
+# lids to a reuse bin, vials to a rework bin, cubes (stand-in parts) to their own bin.
+#
+# ALL NUMBERS MARKED "TODO" ARE PLACEHOLDERS. Replace them after:
+#   - sim/explore_twin.py (object sizes, bin poses from the twin)
+#   - calib/ (table frame from the real calibration)
+#   - the plant manager (the robot program's real pick and place points)
+
+frames:
+  root: robot_base
+  table: table            # all poses below are in this frame, mm and degrees
+
+gripper:
+  max_opening_mm: 40.0    # TODO: measure the SCHUNK jaws (open) on the real fingers
+  clearance_mm: 4.0
+
+objects:
+  # symmetry_deg: angle after which the object looks the same from above
+  #   0 = round (yaw ignored), 90 = cube, 180 = lying vial, 360 = no symmetry
+  cube:
+    symmetry_deg: 90
+    width_mm: 25          # TODO from twin
+    length_mm: 25
+    target_bin: bin_cubes
+  vial:
+    symmetry_deg: 180
+    width_mm: 16          # TODO from twin (diameter, lying)
+    length_mm: 100
+    target_bin: bin_rework
+  lid:
+    symmetry_deg: 0
+    width_mm: 20          # TODO from twin (diameter)
+    length_mm: 20
+    target_bin: bin_lids
+
+bins:
+  bin_cubes:
+    center: {x_mm: 450, y_mm: -250}   # TODO from twin / calibration
+    half_x_mm: 60
+    half_y_mm: 60
+  bin_rework:
+    center: {x_mm: 450, y_mm: 0}      # TODO
+    half_x_mm: 60
+    half_y_mm: 90
+  bin_lids:
+    center: {x_mm: 450, y_mm: 250}    # TODO
+    half_x_mm: 60
+    half_y_mm: 60
+
+# Pick points the robot's EXISTING program reaches for (Watch mode compares
+# against these). Get the real ones from the plant manager.
+pick_points:
+  slot_1: {x_mm: 300, y_mm: -150, yaw_deg: 0}   # TODO
+  slot_2: {x_mm: 300, y_mm: 0, yaw_deg: 0}      # TODO
+  slot_3: {x_mm: 300, y_mm: 150, yaw_deg: 0}    # TODO
+
+# Joint-space waypoints used to detect robot events from joint_states (Watch mode).
+# Fill from the robot program or by recording joint_states at each point.
+waypoints:
+  tolerance_rad: 0.02
+  still_velocity_rad_s: 0.01
+  pre_pick: {}      # e.g. slot_1: [j1, j2, j3, j4, j5, j6]   TODO
+  grasp_closed: {}  # set from gripper I/O event if available
+  place_done: {}    # e.g. bin_rework: [..]                    TODO
+
+thresholds:
+  pre_pick_mm: 10.0
+  pre_pick_deg: 10.0
+  post_place_mm: 15.0
+  match_radius_mm: 60.0
+  min_confidence: 0.5
+  sync_tolerance_ms: 100.0
+  max_retries: 1
+
+cameras:
+  overhead_a: {topic: /cam/overhead_a/image_raw, homography: calib/out/overhead_a_H.npy, intrinsics: calib/out/overhead_a_K.npz}
+  overhead_b: {topic: /cam/overhead_b/image_raw, homography: calib/out/overhead_b_H.npy, intrinsics: calib/out/overhead_b_K.npz}
+  wrist:      {topic: /cam/wrist/image_raw, intrinsics: calib/out/wrist_K.npz}
+
+models:
+  detector: models/overhead_obb.engine      # TensorRT on the Spark; .pt works too
+  wrist_classifier: models/wrist_cls.pt     # optional; see perception/README
+  wrist_reference: models/wrist_empty_ref.png
+  cosmos:
+    base_url: http://localhost:8000/v1       # local Cosmos Nano on the Spark, or build.nvidia.com
+    model: nvidia/cosmos-nano                # TODO: exact model id from the Spark / build.nvidia.com
+    api_key_env: NVIDIA_API_KEY
+
+safety:
+  guide_armed_default: false       # Guide never commands the arm unless armed explicitly
+  max_velocity_scaling: 0.10
+  max_acceleration_scaling: 0.10
+  workspace_limits_mm: {x_min: 150, x_max: 650, y_min: -400, y_max: 400, z_min: 5}   # TODO confirm with Dr. Zeng
