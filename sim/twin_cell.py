@@ -103,6 +103,7 @@ def main():
                          "of the loop before a wrist method exists. Numbers from such runs say nothing about the check")
     ap.add_argument("--save-wrist", action="store_true", help="save every wrist image served, named by the truth")
     ap.add_argument("--debug", action="store_true", help="log every row (target, tip, jaws, parts) to <session>_rows.jsonl")
+    ap.add_argument("--wrist-frames", action="store_true", help="with --frames-every, save the wrist view too")
     ap.add_argument("--starter", default="/workspace/fanuc_er4ia_sim")
     ap.add_argument("--out", default=str(ROOT / "runs" / "twin_cell"))
     args = ap.parse_args()
@@ -354,6 +355,8 @@ def main():
                         fdir = out / "frames" / session / f"r{k:02d}"
                         fdir.mkdir(parents=True, exist_ok=True)
                         cv2.imwrite(str(fdir / f"{rows_done:05d}.jpg"), cv2.cvtColor(render("table"), cv2.COLOR_RGB2BGR))
+                        if args.wrist_frames:
+                            cv2.imwrite(str(fdir / f"{rows_done:05d}_wrist.jpg"), cv2.cvtColor(render("wrist"), cv2.COLOR_RGB2BGR))
                 if state["fault"]:
                     break
                 if policy.loop is not None and policy.loop.done and not lag:
