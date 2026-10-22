@@ -73,12 +73,12 @@ def subset_dataset(data_yaml: Path, n: int, seed: int) -> Path:
     return sub / "data.yaml"
 
 
-def train_one(kind, data, model, epochs, imgsz, batch, seed, name):
+def train_one(kind, data, model, epochs, imgsz, batch, seed, name, workers):
     from ultralytics import YOLO
     m = YOLO(model)
     t0 = time.time()
     res = m.train(data=str(data), epochs=epochs, imgsz=imgsz, batch=batch, seed=seed, project=str(ROOT / "runs" / kind),
-                  name=name, exist_ok=False, patience=20, verbose=False)
+                  name=name, exist_ok=False, patience=20, verbose=False, workers=workers)
     minutes = (time.time() - t0) / 60
     weights = Path(res.save_dir) / "weights" / "best.pt"
     metrics = getattr(res, "results_dict", {}) or {}
@@ -99,6 +99,8 @@ def main():
     ap.add_argument("--real", help="real test set folder (obb) for eval_real.py after each run")
     ap.add_argument("--camera", default="table")
     ap.add_argument("--credits-per-hour", type=float, default=0.0)
+    ap.add_argument("--workers", type=int, default=8,
+                    help="data-loader processes; 0 in containers with a small /dev/shm (the YAAD Spark has 64 MB)")
     args = ap.parse_args()
 
     model = args.model or ("yolo11n-obb.pt" if args.kind == "obb" else "yolo11n-cls.pt")
@@ -109,7 +111,7 @@ def main():
     for n in sizes:
         data = subset_dataset(Path(args.data), n, args.seed) if (n and args.kind == "obb") else Path(args.data)
         name = f"{(Path(args.data).parent.name or Path(args.data).stem) if args.kind == 'obb' else Path(args.data).name}" + (f"_n{n}" if n else "")
-        weights, minutes, score = train_one(args.kind, data, model, args.epochs, imgsz, args.batch, args.seed, name)
+        weights, minutes, score = train_one(args.kind, data, model, args.epochs, imgsz, args.batch, args.seed, name, args.workers)
         row = {"model": Path(model).stem, "dataset": name, "epochs": args.epochs, "gpu": gpu,
                "runtime_min": round(minutes, 1), "credits_used": round(minutes / 60 * args.credits_per_hour, 2),
                "synth_score": score, "real_recall": None, "real_pos_err_mm": None, "real_yaw_err_deg": None,
