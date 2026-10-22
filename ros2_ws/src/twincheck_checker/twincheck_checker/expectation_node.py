@@ -5,9 +5,10 @@ twin is running it publishes physics-based expectations on the same topic with
 source="physics"; the comparator then mentions the twin's prediction.
 """
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
-from twincheck_core import load_config
+from twincheck_core import Pose2D, load_config
 from twincheck_msgs.msg import DetectedObject, ExpectedState, GraspState, RobotEvent
 
 EVENT_TO_CHECK = {RobotEvent.PRE_PICK: "pre_pick", RobotEvent.GRASP_CLOSED: "post_grasp",
@@ -36,7 +37,9 @@ class ExpectationNode(Node):
         m.expected_grasp = GraspState.HOLDING
         m.target_bin = bin_name
         m.source = "config"
-        if cp == "pre_pick" and ev.pick_point in self.cfg.pick_points:
+        if cp == "pre_pick" and ev.has_target:   # Guide: the planned grasp
+            p = Pose2D(ev.target_x_mm, ev.target_y_mm, ev.target_yaw_deg)
+        elif cp == "pre_pick" and ev.pick_point in self.cfg.pick_points:
             p = self.cfg.pick_points[ev.pick_point]
         else:
             p = self.cfg.bins[bin_name].center
@@ -50,6 +53,8 @@ def main():
     node = ExpectationNode()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

@@ -8,6 +8,7 @@ Examples
   Baseline logging:   ros2 launch twincheck_bringup twincheck.launch.py env:=real mode:=baseline
   Guide, dry run:     ros2 launch twincheck_bringup twincheck.launch.py env:=twin mode:=guide
   Guide, ARMED:       ... mode:=guide armed:=true   (plant manager + mentor present only)
+  Laptop, no cameras: ... perception:=false, then: ros2 run twincheck_checker fake_world (see its docstring)
 """
 import os
 
@@ -24,17 +25,22 @@ def _nodes(context):
     config = lc("config") or os.environ.get("TWINCHECK_CONFIG", "")
     run_sheet = lc("run_sheet") or os.path.join(share, "config", "run_sheet_example.yaml")
     env, mode = lc("env"), lc("mode")
-    use_sim_time = env == "twin"
+    # Isaac Sim publishes /clock; "auto" follows env. fake_world runs use sim_time:=false (one clock, no lag)
+    use_sim_time = env == "twin" if lc("sim_time") == "auto" else lc("sim_time").lower() == "true"
     common = {"config": config, "use_sim_time": use_sim_time}
     # Baseline runs log trials and checks exactly like Watch, so the numbers line up;
     # the robot keeps its own program and nobody acts on the alerts.
     checker_mode = "guide" if mode == "guide" else "watch"
     events = "guide" if mode == "guide" else lc("events")
 
-    nodes = [
-        Node(package="twincheck_perception", executable="detector_node", parameters=[common]),
-        Node(package="twincheck_perception", executable="grasp_check_node",
-             parameters=[common | {"method": lc("wrist_method")}]),
+    nodes = []
+    if lc("perception").lower() == "true":   # false: fake_world publishes objects and grasp states instead
+        nodes += [
+            Node(package="twincheck_perception", executable="detector_node", parameters=[common]),
+            Node(package="twincheck_perception", executable="grasp_check_node",
+                 parameters=[common | {"method": lc("wrist_method")}]),
+        ]
+    nodes += [
         Node(package="twincheck_checker", executable="robot_state_node",
              parameters=[common | {"source": events, "run_sheet": run_sheet}]),
         Node(package="twincheck_checker", executable="expectation_node", parameters=[common]),
@@ -59,6 +65,8 @@ def generate_launch_description():
         DeclareLaunchArgument("events", default_value="joint_states", description="joint_states | manual"),
         DeclareLaunchArgument("wrist_method", default_value="reference_diff", description="reference_diff | classifier | cosmos"),
         DeclareLaunchArgument("armed", default_value="false", description="Guide only: true lets the arm move"),
+        DeclareLaunchArgument("sim_time", default_value="auto", description="auto (true for env:=twin) | true | false"),
+        DeclareLaunchArgument("perception", default_value="true", description="false: no detector/wrist nodes (fake_world)"),
         DeclareLaunchArgument("config", default_value=""),
         DeclareLaunchArgument("run_sheet", default_value=""),
         DeclareLaunchArgument("rung", default_value="fixed_pose"),

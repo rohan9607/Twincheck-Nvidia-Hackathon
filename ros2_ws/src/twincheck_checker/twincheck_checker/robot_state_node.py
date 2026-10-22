@@ -12,6 +12,7 @@ The run sheet (YAML list) says which object each trial is about, so trials line
 up with the trial log.
 """
 import rclpy
+from rclpy.executors import ExternalShutdownException
 import yaml
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
@@ -95,9 +96,11 @@ def main():
     node = RobotStateNode()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 def trigger_main():
@@ -117,4 +120,4 @@ def trigger_main():
                 rclpy.spin_once(node, timeout_sec=0.05)
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

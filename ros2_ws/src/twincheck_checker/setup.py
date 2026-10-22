@@ -23,5 +23,6 @@ setup(
         "comparator_node = twincheck_checker.comparator_node:main",
         "resync_node = twincheck_checker.resync_node:main",
         "alert_node = twincheck_checker.alert_node:main",
+        "fake_world = twincheck_checker.fake_world:main",
     ]},
 )

@@ -12,11 +12,12 @@ from pathlib import Path
 
 import cv2
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 
-from twincheck_core import Comparator, Mode, StampBuffer, load_config
+from twincheck_core import Comparator, Mode, Pose2D, StampBuffer, load_config
 from twincheck_core.checks import GraspState
 from twincheck_msgs.msg import CheckResult, ExpectedState, GraspState as GraspStateMsg, ObjectArray, RobotEvent
 
@@ -30,6 +31,7 @@ class ComparatorNode(Node):
         self.declare_parameter("mode", "watch")
         self.declare_parameter("place_settle_ms", 600.0)
         self.declare_parameter("grasp_timeout_ms", 3000.0)
+        self.declare_parameter("scene_window_ms", 300.0)
         self.declare_parameter("image_dir", "runs/images")
         self.declare_parameter("default_object", "cube")
         self.declare_parameter("default_pick_point", "slot_1")
@@ -49,18 +51,25 @@ class ComparatorNode(Node):
         self.waiting: list[tuple[str, int, RobotEvent]] = []   # (kind, due_ns, event)
         self.grasp_msgs: list[GraspStateMsg] = []
 
-        self.create_subscription(ObjectArray, "/perception/objects", lambda m: self.objects.push(stamp_ns(m.header), m), 20)
+        self.create_subscription(ObjectArray, "/perception/objects", self.on_objects, 20)
         self.create_subscription(GraspStateMsg, "/perception/grasp_state", lambda m: self.grasp_msgs.append(m), 10)
         self.create_subscription(ExpectedState, "/twin/expected", self.on_expected, 10)
         self.create_subscription(RobotEvent, "/robot/event", self.on_event, 10)
         cams = self.cfg.raw["cameras"]
-        self.create_subscription(Image, cams["overhead_a"]["topic"], lambda m: self.overhead_imgs.push(stamp_ns(m.header), m), 2)
+        self.create_subscription(Image, cams["table"]["topic"], lambda m: self.overhead_imgs.push(stamp_ns(m.header), m), 2)
         self.create_subscription(Image, cams["wrist"]["topic"], lambda m: self.wrist_imgs.push(stamp_ns(m.header), m), 2)
         self.pub = self.create_publisher(CheckResult, "/check/result", 10)
         self.create_timer(0.05, self.tick)
         self.get_logger().info(f"comparator in {self.mode.value} mode")
 
     # ---------------------------------------------------------------- inputs
+    def on_objects(self, m: ObjectArray):
+        steps = self.objects.clock_steps
+        self.objects.push(stamp_ns(m.header), m)
+        if self.objects.clock_steps > steps:
+            self.get_logger().warn("camera stamps jumped back in time (clock step?): dropped older frames; "
+                                   "use slewing NTP (chrony) on session machines")
+
     def on_expected(self, m: ExpectedState):
         self.expected[(m.trial_id, m.check_point)] = m
 
@@ -69,8 +78,14 @@ class ComparatorNode(Node):
         if ev.event == RobotEvent.PRE_PICK:
             cls = ev.object_cls or self.get_parameter("default_object").value
             pp_name = ev.pick_point or self.get_parameter("default_pick_point").value
-            self.comp.start_trial(ev.trial_id, cls, self.cfg.pick_points[pp_name], ev.target_bin or None)
+            # Guide says where it will grab; a fixed program grabs its taught pick point
+            pick = Pose2D(ev.target_x_mm, ev.target_y_mm, ev.target_yaw_deg) if ev.has_target \
+                else self.cfg.pick_points[pp_name]
+            self.comp.start_trial(ev.trial_id, cls, pick, ev.target_bin or None)
             self.waiting.append(("pre_pick", now, ev))
+        elif ev.event in (RobotEvent.GRASP_CLOSED, RobotEvent.PLACE_DONE) and not self.comp.is_active(ev.trial_id):
+            self.get_logger().error(f"{ev.event} for trial {ev.trial_id} without its pre_pick; not checked "
+                                    "(missed pre-pick event or keys out of order)")
         elif ev.event == RobotEvent.GRASP_CLOSED:
             self.waiting.append(("post_grasp", now + int(self.get_parameter("grasp_timeout_ms").value * 1e6), ev))
         elif ev.event == RobotEvent.PLACE_DONE:
@@ -96,7 +111,11 @@ class ComparatorNode(Node):
         m = self.objects.nearest(stamp_ns(ev.header), self.tol_ms)
         if m is None:
             return False
-        decision = self.comp.on_pre_pick(detections(m.item))
+        # bin contents for the post-place count: the fullest frame nearby, so a flickering
+        # detection can't undercount the bins (that would let a lost part pass)
+        nearby = self.objects.within(stamp_ns(ev.header), self.get_parameter("scene_window_ms").value)
+        scene = max((detections(f.item) for f in nearby), key=len, default=None)
+        decision = self.comp.on_pre_pick(detections(m.item), scene, ev.trial_id)
         self.publish(ev, decision, m.gap_ms, self.overhead_imgs, stamp_ns(ev.header))
         return True
 
@@ -106,12 +125,12 @@ class ComparatorNode(Node):
         if mine:
             g = mine[0]
             self.grasp_msgs.remove(g)
-            decision = self.comp.on_grasp_closed(grasp_state(g))
+            decision = self.comp.on_grasp_closed(grasp_state(g), ev.trial_id)
             self.publish(ev, decision, (stamp_ns(g.header) - t_ev) / 1e6, self.wrist_imgs, stamp_ns(g.header),
                          extra=f" [{g.method}: {g.detail}]")
             return True
         if timed_out:  # no wrist answer in time: count it as unknown (a failure), never as success
-            decision = self.comp.on_grasp_closed(GraspState.UNKNOWN)
+            decision = self.comp.on_grasp_closed(GraspState.UNKNOWN, ev.trial_id)
             self.publish(ev, decision, math.nan, self.wrist_imgs, t_ev, extra=" [no wrist result in time]")
             return True
         return False
@@ -120,7 +139,7 @@ class ComparatorNode(Node):
         m = self.objects.latest_after(due_ns)
         if m is None:
             return False
-        decision = self.comp.on_place_done(detections(m.item))
+        decision = self.comp.on_place_done(detections(m.item), ev.trial_id)
         self.publish(ev, decision, m.gap_ms, self.overhead_imgs, m.stamp_ns)
         return True
 
@@ -156,8 +175,12 @@ class ComparatorNode(Node):
         msg.expected_img = exp.expected_img if exp else ""
         msg.observed_img = self.save_image(img_buf, img_stamp, f"trial{ev.trial_id:04d}_{cp}.jpg")
         self.pub.publish(msg)
-        level = self.get_logger().info if out.passed else self.get_logger().warn
-        level(f"trial {ev.trial_id} {cp}: {'PASS' if out.passed else 'FAIL'} - {reason} -> {decision.action.value}")
+        # rclpy refuses one call site logging at two severities, so PASS and FAIL need separate calls
+        line = f"trial {ev.trial_id} {cp}: {'PASS' if out.passed else 'FAIL'} - {reason} -> {decision.action.value}"
+        if out.passed:
+            self.get_logger().info(line)
+        else:
+            self.get_logger().warn(line)
 
 
 def main():
@@ -165,6 +188,8 @@ def main():
     node = ComparatorNode()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

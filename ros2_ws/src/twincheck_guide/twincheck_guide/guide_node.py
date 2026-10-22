@@ -21,7 +21,7 @@ import time
 import rclpy
 import yaml
 from geometry_msgs.msg import PoseStamped
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import ExternalShutdownException, MultiThreadedExecutor
 from rclpy.node import Node
 from std_msgs.msg import String
 from std_srvs.srv import SetBool
@@ -44,7 +44,8 @@ class GuideNode(Node):
         for name, default in [("config", ""), ("armed", False), ("run_sheet", ""), ("planning_group", "manipulator"),
                               ("tool_link", "tool0"), ("base_frame", "base_link"), ("gripper_service", "/gripper/set"),
                               ("table_z_mm", 0.0), ("approach_z_mm", 120.0), ("grasp_z_mm", 15.0),
-                              ("place_z_mm", 80.0), ("search_radius_mm", 120.0), ("first_trial_id", 1)]:
+                              ("place_z_mm", 80.0), ("search_radius_mm", 120.0), ("first_trial_id", 1),
+                              ("part_wait_s", 10.0)]:
             self.declare_parameter(name, default)
         self.cfg = load_config(self.p("config") or None)
         self.safety = self.cfg.raw["safety"]
@@ -93,12 +94,15 @@ class GuideNode(Node):
             self.stopped = False
 
     # ---------------------------------------------------------------- helpers
-    def emit(self, event, trial_id, row):
+    def emit(self, event, trial_id, row, target: Pose2D | None = None):
         ev = RobotEvent()
         ev.header.stamp = self.get_clock().now().to_msg()
         ev.header.frame_id = "robot_base"
         ev.event, ev.trial_id, ev.source = event, trial_id, "guide"
         ev.object_cls, ev.pick_point, ev.target_bin = row["object_cls"], row.get("pick_point", ""), row.get("target_bin", "")
+        if target is not None:   # the pre-pick check compares against where we will actually grab
+            ev.has_target = True
+            ev.target_x_mm, ev.target_y_mm, ev.target_yaw_deg = target.x_mm, target.y_mm, target.yaw_deg
         self.event_pub.publish(ev)
 
     def wait_result(self, trial_id, cp, timeout=8.0):
@@ -119,6 +123,18 @@ class GuideNode(Node):
         if m is None:
             return []
         return [Detection(o.cls, Pose2D(o.x_mm, o.y_mm, o.yaw_deg), o.confidence, o.camera, o.id) for o in m.item.objects]
+
+    def wait_for_part(self, cls, area):
+        """The next part may still be arriving (or the cameras starting): look for up to part_wait_s."""
+        t0 = time.time()
+        while rclpy.ok():
+            dets = self.latest_detections()
+            target = nearest_detection(area, dets, cls, self.p("search_radius_mm")) if area else \
+                next((d for d in dets if d.cls == cls), None)
+            if target is not None or time.time() - t0 > self.p("part_wait_s"):
+                return target
+            time.sleep(0.1)
+        return None
 
     def within_limits(self, x, y, z) -> bool:
         lim = self.safety["workspace_limits_mm"]
@@ -176,18 +192,16 @@ class GuideNode(Node):
             while rclpy.ok():
                 while self.stopped:
                     time.sleep(0.2)
-                dets = self.latest_detections()
-                target = nearest_detection(area, dets, cls, self.p("search_radius_mm")) if area else \
-                    next((d for d in dets if d.cls == cls), None)
+                target = self.wait_for_part(cls, area)
                 if target is None:
-                    self.get_logger().warn(f"trial {trial_id}: no {cls} visible; skipping")
+                    self.get_logger().warn(f"trial {trial_id}: no {cls} visible after {self.p('part_wait_s'):.0f} s; skipping")
                     break
                 g = plan_grasp(target.pose, spec, self.cfg.raw["gripper"]["max_opening_mm"],
                                self.cfg.raw["gripper"]["clearance_mm"])
                 if not g.fits:
                     self.get_logger().error(f"trial {trial_id}: {g.reason}; skipping")
                     break
-                self.emit(RobotEvent.PRE_PICK, trial_id, row)
+                self.emit(RobotEvent.PRE_PICK, trial_id, row, target.pose)
                 self.wait_result(trial_id, "pre_pick", 3.0)
                 gx, gy, gyaw = g.pose.x_mm, g.pose.y_mm, g.pose.yaw_deg
                 self.set_gripper(False)
@@ -223,6 +237,8 @@ def main():
     ex.add_node(node)
     try:
         ex.spin()
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

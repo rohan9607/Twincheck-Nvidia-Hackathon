@@ -5,6 +5,7 @@ frame and fuses the two views. Publishes /perception/objects (ObjectArray),
 stamped with the capture time of the newest image used.
 """
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -19,7 +20,7 @@ class DetectorNode(Node):
     def __init__(self):
         super().__init__("detector_node")
         self.declare_parameter("config", "")
-        self.declare_parameter("cameras", ["overhead_a", "overhead_b"])
+        self.declare_parameter("cameras", ["table"])
         self.declare_parameter("conf", 0.25)
         self.declare_parameter("fuse_radius_mm", 25.0)
         self.declare_parameter("max_pair_gap_ms", 100.0)
@@ -65,6 +66,8 @@ def main():
     node = DetectorNode()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

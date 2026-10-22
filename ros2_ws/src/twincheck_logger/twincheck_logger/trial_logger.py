@@ -9,6 +9,7 @@ import os
 
 import psycopg
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
 from twincheck_msgs.msg import CheckResult, ResyncReport, RobotEvent
@@ -21,7 +22,7 @@ def nan_to_none(x):
 class TrialLogger(Node):
     def __init__(self):
         super().__init__("trial_logger")
-        self.declare_parameter("dsn", os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck"))
+        self.declare_parameter("dsn", os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck"))
         self.declare_parameter("env", "twin")               # twin | real
         self.declare_parameter("mode", "watch")             # baseline | watch | guide
         self.declare_parameter("ladder_rung", "fixed_pose")
@@ -76,6 +77,8 @@ def main():
     node = TrialLogger()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()

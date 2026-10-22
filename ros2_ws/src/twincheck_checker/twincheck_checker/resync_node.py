@@ -8,6 +8,7 @@ how far things had to move (drift).
 import math
 
 import rclpy
+from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 
 from twincheck_core import StampBuffer, plan_resync
@@ -80,6 +81,8 @@ def main():
     node = ResyncNode()
     try:
         rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass  # Ctrl-C or launch shutdown
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
