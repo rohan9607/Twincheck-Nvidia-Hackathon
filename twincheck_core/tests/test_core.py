@@ -44,6 +44,13 @@ def test_pre_pick_pass_and_shift():
     assert not out.passed and out.position_error_mm == pytest.approx(30)
 
 
+def test_pre_pick_screw_seen_head_for_tip_passes():
+    # the detector's box has no head/tip direction: a screw found 180 deg around is the same screw
+    pick = CFG.pick_points["slot_2"]
+    flipped = [Detection("screw", Pose2D(pick.x_mm, pick.y_mm, pick.yaw_deg + 178))]
+    assert check_pre_pick(pick, "screw", flipped, CFG.thresholds, CFG.symmetry("screw")).passed
+
+
 def test_pre_pick_missing_object():
     out = check_pre_pick(CFG.pick_points["slot_1"], "cube", [], CFG.thresholds, 90)
     assert not out.passed and "no cube" in out.reason

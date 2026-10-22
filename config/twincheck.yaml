@@ -32,8 +32,9 @@ objects:
     length_mm: 10
     height_mm: 10
     target_bin: bin_cubes
-  screw:                  # M6 x 30 countersunk (ISO 10642), lying; yaw points from the head to the tip
-    symmetry_deg: 360
+  screw:                  # M6 x 30 countersunk (ISO 10642), lying; yaw is along the shank
+    symmetry_deg: 180     # an oriented box can't tell head from tip, and the jaws close across the shank either
+                          # way (360 made every second screw fail pre-pick by 180 deg: eval_twin, Oct 22)
     width_mm: 6           # the shank: the fingers close across it (the head is 12 mm)
     length_mm: 30
     height_mm: 12
