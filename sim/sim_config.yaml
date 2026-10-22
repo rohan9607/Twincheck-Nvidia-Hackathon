@@ -1,7 +1,7 @@
 # Paths inside the twin. The organizers' starter (fanuc_er4ia_hackathon_starter_v05/fanuc_er4ia_sim) builds
 # the scene in code: run its build_scene.py --headless --save <file>.usd, then point usd_path at that file.
 # Prim and joint names below are the starter's (cell.py, scene_config.py); run sim/explore_twin.py to confirm.
-usd_path: /workspace/fanuc_er4ia_sim/scene.usd          # TODO: the .usd saved by the starter's build_scene.py
+usd_path: /workspace/twincheck_scene.usd                # sim/build_twincheck_scene.py --headless --save <this>
 
 robot:
   articulation: /World/ER4iA                             # starter scene_config.ROBOT_PRIM
@@ -17,9 +17,10 @@ cameras:
   resolution: [1920, 1080]                               # the real table/side cameras; the wrist is 1280 x 720
 
 objects:            # one prim per object type in the starter scene; copies are made for clutter
-                    # TODO check origins: the CAD cube's is its bottom face, our scripts assume the centre
+                    # origins (checked Oct 22, explore_twin): cube = bottom-face centre on the surface;
+                    # screw = head face centre, lying on its side, tip along +yaw (build_twincheck_scene.py)
   cube: /World/SortCube0                                 # 10 mm (starter CUBE_EDGE)
-  screw: /World/Screw0                                   # starter SCREWS list is empty: enable screws first
+  screw: /World/Screw0                                   # added by sim/build_twincheck_scene.py
   vial: /World/SortVial0
   cap: /World/SortCap0
 
