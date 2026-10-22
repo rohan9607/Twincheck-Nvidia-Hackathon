@@ -226,7 +226,14 @@ class PickLoop:
         return rows + self._park()
 
     def _release_here(self) -> list[Row]:
-        return self._hold(self.spec.grip_rows, 0.0)
+        """Set whatever may be held back down where it was picked, open, and rise again. Opening at lift
+        height would drop a held part about 10 cm onto the table and scatter it (seen in the twin)."""
+        s = self.spec
+        x, y, _, _, _, r, g = self.last
+        return (self._go(x, y, s.z_above_surface(s.tip_clearance_mm), r, g)
+                + self._hold(s.settle_rows)
+                + self._hold(s.grip_rows, 0.0)
+                + self._up_to(s.z_above_surface(s.hover_mm)))
 
     # ------------------------------------------------------------------ bookkeeping
     def _log(self, d: Decision, tid: int) -> None:

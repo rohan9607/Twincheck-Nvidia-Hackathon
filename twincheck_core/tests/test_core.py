@@ -299,9 +299,14 @@ def test_pickloop_guide_retries_empty_grasp_once_then_stops():
     loop.step(View(tcp=None, detections=scene))
     loop.step(View(tcp=None, grasp=GraspState.EMPTY))             # retry: drop, park, look again
     assert loop.needs == Need.SCENE and not loop.done
-    loop.step(View(tcp=None, detections=scene))
+    rows = loop.step(View(tcp=None, detections=scene))
+    lifted = rows[-1]
     rows = loop.step(View(tcp=None, grasp=GraspState.EMPTY))      # second miss: stop and hold
     assert loop.done and rows[-1][6] == 0
+    # the jaws open only after setting down at the pick point, never at lift height (a held part would drop)
+    opened = next(r for r in rows if r[6] == 0)
+    assert opened[:2] == lifted[:2] and opened[2] == SPEC.z_above_surface(SPEC.tip_clearance_mm)
+    _rows_ok(rows)
     ev = loop.drain_events()
     assert [e.kind for e in ev].count("trial") == 1 and ev[-1].kind == "stop"
     assert loop.step(View(tcp=rows[-1][:6], gripper=0)) == [rows[-1]]   # done: holds still
