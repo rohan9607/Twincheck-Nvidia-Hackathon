@@ -4,7 +4,7 @@ Take 15-20 photos of the printed checkerboard with the camera you are calibratin
 tilt it, move it to the corners and edges of the image, fill different parts of
 the frame. Then:
 
-    python calib/intrinsics.py --images "calib/raw/overhead_a/*.jpg" --out calib/out/overhead_a_K.npz --square-mm 25
+    python calib/intrinsics.py --images "calib/raw/table/*.jpg" --out calib/out/table_K.npz --square-mm 25
 
 Saves K (camera matrix) and dist (distortion), prints the reprojection error
 (below 0.5 px is good, above 1 px means retake blurry or poorly spread photos),
@@ -28,7 +28,10 @@ def capture_webcam(index: int, n: int, folder: Path, cols: int, rows: int):
         ok, frame = cap.read()
         if not ok:
             break
-        found, corners = cv2.findChessboardCorners(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (cols, rows))
+        # FAST_CHECK bails out quickly when no board is in view, so the preview stays live
+        found, corners = cv2.findChessboardCorners(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), (cols, rows),
+                                                   flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE
+                                                   + cv2.CALIB_CB_FAST_CHECK)
         view = frame.copy()
         cv2.drawChessboardCorners(view, (cols, rows), corners, found)
         cv2.putText(view, f"saved {saved}/{n}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
@@ -46,7 +49,7 @@ def capture_webcam(index: int, n: int, folder: Path, cols: int, rows: int):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--images", help='glob, e.g. "calib/raw/overhead_a/*.jpg"')
+    ap.add_argument("--images", help='glob, e.g. "calib/raw/table/*.jpg"')
     ap.add_argument("--webcam", type=int, help="capture from this camera index instead")
     ap.add_argument("--out", required=True)
     ap.add_argument("--cols", type=int, default=9)

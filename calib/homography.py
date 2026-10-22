@@ -7,8 +7,8 @@
 3. Take one photo with each overhead camera (markers visible, arm out of the way).
 4. Run once per camera:
 
-    python calib/homography.py --image calib/raw/overhead_a_markers.jpg --points calib/marker_points.csv \
-        --intrinsics calib/out/overhead_a_K.npz --out calib/out/overhead_a_H.npy
+    python calib/homography.py --image calib/raw/table_markers.jpg --points calib/marker_points.csv \
+        --intrinsics calib/out/table_K.npz --out calib/out/table_H.npy
 
 It prints the error at every marker (leave-one-out, so the number is honest) and
 saves an overlay image with the robot-frame grid drawn on the photo.

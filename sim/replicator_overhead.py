@@ -27,7 +27,7 @@ def main():
     ap.add_argument("--n", type=int, default=500, help="frames per camera")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--cameras", nargs="+", default=["overhead_a", "overhead_b"])
+    ap.add_argument("--cameras", nargs="+", default=["table"])
     ap.add_argument("--max-objects", type=int, default=3)
     ap.add_argument("--clutter", action="store_true", help="allow objects close together / touching")
     ap.add_argument("--lighting", choices=["mild", "wide"], default="mild")

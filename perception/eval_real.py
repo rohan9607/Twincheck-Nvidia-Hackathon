@@ -6,7 +6,7 @@ Standard mAP says little about whether a pick will land. This reports:
   - per-class numbers, and the misses, saved as images to look at
 
     python perception/eval_real.py --model runs/obb/train/weights/best.pt --data data/real_test_v1 \
-        --camera overhead_a --out runs/eval/real_v1
+        --camera table --out runs/eval/real_v1
 
 The real test set is YOLO-OBB (export from CVAT). It must NEVER be used for training.
 Acceptance gate (from the execution plan): recall >= 95%, median position <= 5 mm, median yaw <= 5 deg.
@@ -49,7 +49,7 @@ def main():
     ap.add_argument("--model", required=True)
     ap.add_argument("--data", required=True, help="real test folder with data.yaml, images/, labels/")
     ap.add_argument("--split", default="val")
-    ap.add_argument("--camera", default="overhead_a", help="which calibration to apply")
+    ap.add_argument("--camera", default="table", help="which calibration to apply")
     ap.add_argument("--match-mm", type=float, default=25.0)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()

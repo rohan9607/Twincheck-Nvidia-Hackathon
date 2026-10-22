@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "twincheck_core"))
 from twincheck_core import pick_threshold, rate_with_interval, threshold_sweep  # noqa: E402
 
-DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck")
+DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck")
 
 
 def q(db, sql, params=()):
@@ -67,15 +67,29 @@ def main():
             out.append({"env": key[0], "mode": key[1], "rung": key[2], "pick success": rate_with_interval(ok, len(g))})
     table("Pick success (normal trials, no induced failure)", out, ["env", "mode", "rung", "pick success"])
 
-    # 2. Failures caught: real failures (induced, or pick_success = false) that TwinCheck flagged
+    # 2. Failures caught: real failures that TwinCheck flagged. An induced failure is always a real one
+    #    for a fixed program; in Guide it only counts if the pick still failed (else Guide recovered it, table 2b)
+    def failed(r):
+        return r["pick_success"] is False or (r["induced_failure"] is not None and r["mode"] != "guide")
+
     out = []
     for key in sorted({(r["env"], r["mode"]) for r in rows if r["mode"] != "baseline"}):
-        fails = [r for r in rows if (r["env"], r["mode"]) == key and (r["induced_failure"] or r["pick_success"] is False)]
+        fails = [r for r in rows if (r["env"], r["mode"]) == key and failed(r)]
         for kind in sorted({r["induced_failure"] or "natural" for r in fails}):
             g = [r for r in fails if (r["induced_failure"] or "natural") == kind]
             out.append({"env": key[0], "mode": key[1], "failure": kind,
                         "caught": rate_with_interval(sum(bool(r["flagged"]) for r in g), len(g))})
     table("Failures caught by TwinCheck", out, ["env", "mode", "failure", "caught"])
+
+    # 2b. Guide recovery: induced failures that still ended with the part in the right bin
+    out = []
+    for key in sorted({(r["env"], r["induced_failure"]) for r in rows if r["mode"] == "guide" and r["induced_failure"]}):
+        g = [r for r in rows if r["mode"] == "guide" and (r["env"], r["induced_failure"]) == key
+             and r["pick_success"] is not None]
+        if g:
+            out.append({"env": key[0], "failure": key[1], "retried": sum(bool(r["retried"]) for r in g),
+                        "recovered": rate_with_interval(sum(bool(r["pick_success"]) for r in g), len(g))})
+    table("Guide: induced failures recovered", out, ["env", "failure", "retried", "recovered"])
 
     # 3. False alarms: good picks that TwinCheck flagged anyway
     out = []

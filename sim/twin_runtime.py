@@ -62,7 +62,7 @@ def build_ros_graph(cfg, bridge_ext: str):
     values = [("joints.inputs:targetPrim", cfg["robot"]["articulation"]), ("joints.inputs:topicName", "joint_states")]
     conns = [("tick.outputs:tick", "clock.inputs:execIn"), ("time.outputs:simulationTime", "clock.inputs:timeStamp"),
              ("tick.outputs:tick", "joints.inputs:execIn"), ("time.outputs:simulationTime", "joints.inputs:timeStamp")]
-    for cam in ("overhead_a", "overhead_b", "wrist"):
+    for cam in ("table", "side", "wrist"):
         nodes += [(f"rp_{cam}", f"{core}.IsaacCreateRenderProduct"), (f"pub_{cam}", f"{ns}.ROS2CameraHelper")]
         values += [(f"rp_{cam}.inputs:cameraPrim", cfg["cameras"][cam]), (f"rp_{cam}.inputs:width", W),
                    (f"rp_{cam}.inputs:height", H), (f"pub_{cam}.inputs:topicName", f"cam/{cam}/image_raw"),
@@ -120,8 +120,8 @@ class Twin:
     def fingers(self, closed: bool, settle_steps=30):
         v = self.cfg["robot"]["finger_closed" if closed else "finger_open"]
         full = self.robot.get_joint_positions()
-        for i in self.finger_idx:
-            full[i] = v
+        for i, q in zip(self.finger_idx, v if isinstance(v, list) else [v] * len(self.finger_idx)):
+            full[i] = q
         self.robot.apply_action(self._action(full))
         self.step(settle_steps)
 
@@ -150,9 +150,15 @@ def run_trials(args, cfg, proj):
     if not wp.get("pre_pick") or not wp.get("place_done"):
         raise SystemExit("fill waypoints.pre_pick / place_done (joint values) in config/twincheck.yaml first")
     tbl = cfg["table"]
-    dsn = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck")
+    dsn = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck")
     db = psycopg.connect(dsn, autocommit=True)
     classes = list(cfg["objects"].keys()) if args.rung in ("second_object", "clutter") else [args.object]
+    # An event sent before DDS discovery matches robot_state_node is silently dropped (found on the laptop run)
+    t0 = time.time()
+    while manual.get_subscription_count() == 0:
+        if time.time() - t0 > 30:
+            raise SystemExit("nobody on /robot/manual_event: launch twincheck with events:=manual, same ROS_DOMAIN_ID")
+        rclpy.spin_once(node, timeout_sec=0.1)
     tw.world.play()
 
     for t in range(args.n):
@@ -241,7 +247,7 @@ def run_shadow(args, cfg, proj):
                 id_to_prim[o.id] = prim
             used.add(prim)
             spec = proj["objects"][o.cls]
-            set_pose_mm(tw.stage, prim, o.x_mm, o.y_mm, cfg["table"]["surface_z_mm"] + spec["width_mm"] / 2, o.yaw_deg)
+            set_pose_mm(tw.stage, prim, o.x_mm, o.y_mm, cfg["table"]["surface_z_mm"] + spec.get("height_mm", spec["width_mm"]) / 2, o.yaw_deg)
     node.create_subscription(ObjectArray, "/twin/set_poses", on_set, 10)
 
     exp_pub = node.create_publisher(ExpectedState, "/twin/expected", 10)

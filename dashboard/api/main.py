@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "twincheck_core"))
 from twincheck_core import wilson_interval  # noqa: E402
 
-DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck")
+DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck")
 TOKEN = os.environ.get("TWINCHECK_DASH_TOKEN", "")
 IMAGE_ROOT = Path(os.environ.get("TWINCHECK_IMAGE_ROOT", ROOT)).resolve()
 

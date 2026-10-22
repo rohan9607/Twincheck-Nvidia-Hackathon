@@ -1,30 +1,33 @@
-# Paths inside the provided twin. Run sim/explore_twin.py first; it prints every
-# prim and camera so you can fill these in. Everything marked TODO is a guess.
-usd_path: /workspace/fanuc_er4ia_sim/scene.usd          # TODO: the twin's main USD file
+# Paths inside the twin. The organizers' starter (fanuc_er4ia_hackathon_starter_v05/fanuc_er4ia_sim) builds
+# the scene in code: run its build_scene.py --headless --save <file>.usd, then point usd_path at that file.
+# Prim and joint names below are the starter's (cell.py, scene_config.py); run sim/explore_twin.py to confirm.
+usd_path: /workspace/fanuc_er4ia_sim/scene.usd          # TODO: the .usd saved by the starter's build_scene.py
 
 robot:
-  articulation: /World/fanuc_er4ia                       # TODO
-  tool_link: /World/fanuc_er4ia/tool0                    # TODO
-  finger_joints: [finger_joint_left, finger_joint_right] # TODO: names of the SCHUNK finger joints
-  finger_open: 0.020                                     # TODO: joint value for open (m or rad)
-  finger_closed: 0.0                                     # TODO
+  articulation: /World/ER4iA                             # starter scene_config.ROBOT_PRIM
+  tool_link: /World/ER4iA/J6_link                        # flange (wrist centre); the fingertip is 293 mm along +x
+  finger_joints: [jaw_l, jaw_r]                          # starter cell.JAW_JOINTS: prismatic, metres, 0 = open
+  finger_open: [0.0, 0.0]
+  finger_closed: [-0.006, 0.006]                         # 6 mm travel per jaw (cell.jaw_targets)
 
 cameras:
-  overhead_a: /World/cameras/overhead_a                  # TODO
-  overhead_b: /World/cameras/overhead_b                  # TODO
-  wrist: /World/fanuc_er4ia/tool0/wrist_camera           # TODO
-  resolution: [640, 480]
+  table: /World/TableCam
+  side: /World/SideCam
+  wrist: /World/ER4iA/J6_link/WristCam
+  resolution: [1920, 1080]                               # the real table/side cameras; the wrist is 1280 x 720
 
-objects:            # prim of each object type in the twin; copies are made for clutter
-  cube: /World/objects/cube                              # TODO
-  vial: /World/objects/vial                              # TODO
-  lid: /World/objects/lid                                # TODO
+objects:            # one prim per object type in the starter scene; copies are made for clutter
+                    # TODO check origins: the CAD cube's is its bottom face, our scripts assume the centre
+  cube: /World/SortCube0                                 # 10 mm (starter CUBE_EDGE)
+  screw: /World/Screw0                                   # starter SCREWS list is empty: enable screws first
+  vial: /World/SortVial0
+  cap: /World/SortCap0
 
 table:
   # area on the table where objects are randomized, robot_base frame, mm
   x_range_mm: [220, 400]
   y_range_mm: [-220, 220]
-  surface_z_mm: 0.0                                      # TODO: table height in the twin
+  surface_z_mm: 894.9                                    # world z of the work surface (base at 0.90 m, surface 5.1 mm below)
   stage_units_per_mm: 0.001                              # USD stage in meters (check metersPerUnit)
 
 lights: []          # existing light prims to randomize; empty = add a dome light

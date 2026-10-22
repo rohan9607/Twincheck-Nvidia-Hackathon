@@ -65,9 +65,10 @@ def main():
     park = lambda p: set_pose_mm(stage, p, 5000, 5000, -1000)  # noqa: E731
 
     def set_fingers(value):
+        """value: one joint value for every finger joint, or a list (one per joint, e.g. jaw_l, jaw_r)."""
         q = robot.get_joint_positions()
-        for i in finger_idx:
-            q[i] = value
+        for i, v in zip(finger_idx, value if isinstance(value, list) else [value] * len(finger_idx)):
+            q[i] = v
         robot.set_joint_positions(q)
 
     def render():
@@ -105,7 +106,9 @@ def main():
                 # close until the fingers touch the object's narrow side
                 ratio = min(1.0, spec["width_mm"] / proj["gripper"]["max_opening_mm"])
                 open_v, closed_v = cfg["robot"]["finger_open"], cfg["robot"]["finger_closed"]
-                set_fingers(closed_v + (open_v - closed_v) * ratio)
+                if not isinstance(open_v, list):
+                    open_v, closed_v = [open_v], [closed_v]
+                set_fingers([c + (o - c) * ratio for o, c in zip(open_v, closed_v)])
             for lp in lights:
                 a = stage.GetPrimAtPath(lp).GetAttribute("inputs:intensity")
                 if a:

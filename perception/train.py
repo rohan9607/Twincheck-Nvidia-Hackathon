@@ -40,7 +40,7 @@ def log_run(row: dict):
         f.write(json.dumps(row) + "\n")
     try:
         import psycopg
-        with psycopg.connect(os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck"),
+        with psycopg.connect(os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck"),
                              connect_timeout=3, autocommit=True) as db:
             db.execute("""INSERT INTO training_runs (model, dataset, epochs, gpu, runtime_min, credits_used, synth_score,
                           real_recall, real_pos_err_mm, real_yaw_err_deg, weights_path, notes)
@@ -97,7 +97,7 @@ def main():
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--subsets", type=int, nargs="*", help="learning curve: training-set sizes")
     ap.add_argument("--real", help="real test set folder (obb) for eval_real.py after each run")
-    ap.add_argument("--camera", default="overhead_a")
+    ap.add_argument("--camera", default="table")
     ap.add_argument("--credits-per-hour", type=float, default=0.0)
     args = ap.parse_args()
 
@@ -108,7 +108,7 @@ def main():
     print(f"GPU: {gpu}")
     for n in sizes:
         data = subset_dataset(Path(args.data), n, args.seed) if (n and args.kind == "obb") else Path(args.data)
-        name = f"{Path(args.data).parent.name if args.kind == 'obb' else Path(args.data).name}" + (f"_n{n}" if n else "")
+        name = f"{(Path(args.data).parent.name or Path(args.data).stem) if args.kind == 'obb' else Path(args.data).name}" + (f"_n{n}" if n else "")
         weights, minutes, score = train_one(args.kind, data, model, args.epochs, imgsz, args.batch, args.seed, name)
         row = {"model": Path(model).stem, "dataset": name, "epochs": args.epochs, "gpu": gpu,
                "runtime_min": round(minutes, 1), "credits_used": round(minutes / 60 * args.credits_per_hour, 2),

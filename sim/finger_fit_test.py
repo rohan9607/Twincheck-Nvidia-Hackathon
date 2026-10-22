@@ -6,7 +6,8 @@ opening from config/twincheck.yaml gripper.max_opening_mm.
 
     /isaac-sim/python.sh sim/finger_fit_test.py
 
-Then confirm with real grasps in the twin: sim/twin_trial_runner.py --rung fixed_pose
+The real gripper (SMC MHZL2-16D2) opens its straight faces only 12 mm: of the cell's parts only the 10 mm
+cube and the M6 screw fit. Then confirm with real grasps in the twin: sim/twin_runtime.py --role trials
 """
 import sys
 from pathlib import Path

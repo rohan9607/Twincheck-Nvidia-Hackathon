@@ -14,7 +14,7 @@ import time
 
 import psycopg
 
-DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck")
+DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck")
 FAILS = {"": None, "e": "empty_grasp", "r": "removed_mid_grasp", "n": "nudged_part"}
 
 

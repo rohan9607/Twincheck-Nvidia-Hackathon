@@ -11,7 +11,7 @@ import os
 
 import psycopg
 
-DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@localhost:5432/twincheck")
+DSN = os.environ.get("TWINCHECK_DSN", "postgresql://twincheck:twincheck@127.0.0.1:5432/twincheck")
 BUDGET = 150.0
 WARN_AT = 75.0
 

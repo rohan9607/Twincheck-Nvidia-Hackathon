@@ -4,7 +4,7 @@ Put an object on each printed spot of the position template, take a photo, and
 compare where the detector + homography puts it with the spot's known position.
 
     python calib/verify.py --image session/verify.jpg --spots calib/template_spots.csv \
-        --camera overhead_a --model models/overhead_obb.pt
+        --camera table --model models/overhead_obb.pt
 
 spots CSV: spot,x_mm,y_mm   Logs mean and max error; over 5 mm means recalibrate.
 """
@@ -27,7 +27,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--image", required=True)
     ap.add_argument("--spots", required=True)
-    ap.add_argument("--camera", default="overhead_a")
+    ap.add_argument("--camera", default="table")
     ap.add_argument("--model", help="detector weights (default: config models.detector)")
     args = ap.parse_args()
 

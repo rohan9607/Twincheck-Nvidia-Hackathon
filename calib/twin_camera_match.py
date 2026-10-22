@@ -7,8 +7,8 @@ Two jobs:
      can see if table edges and fixtures line up. Misalignment here becomes
      sim-to-real error later, so fix it now.
 
-    python calib/twin_camera_match.py --print-usd-lens calib/out/overhead_a_K.npz
-    python calib/twin_camera_match.py --overlay real.jpg twin_render.jpg --out calib/out/overhead_a_match.jpg
+    python calib/twin_camera_match.py --print-usd-lens calib/out/table_K.npz
+    python calib/twin_camera_match.py --overlay real.jpg twin_render.jpg --out calib/out/table_match.jpg
 """
 import argparse
 
