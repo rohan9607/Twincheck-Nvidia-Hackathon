@@ -21,6 +21,7 @@ class ObjectSpec:
     target_bin: str
     width_mm: float = 0.0
     length_mm: float = 0.0
+    height_mm: float = 0.0    # as it lies on the table; 0 = unknown
 
 
 @dataclass
@@ -71,7 +72,8 @@ def load_config(path: str | os.PathLike | None = None) -> Config:
 
     objects = {
         name: ObjectSpec(name=name, symmetry_deg=float(o.get("symmetry_deg", 360)), target_bin=o["target_bin"],
-                         width_mm=float(o.get("width_mm", 0)), length_mm=float(o.get("length_mm", 0)))
+                         width_mm=float(o.get("width_mm", 0)), length_mm=float(o.get("length_mm", 0)),
+                         height_mm=float(o.get("height_mm", 0)))
         for name, o in raw["objects"].items()
     }
     bins = {

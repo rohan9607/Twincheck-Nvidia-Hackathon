@@ -31,7 +31,7 @@ def yaw_diff_deg(a: float, b: float, symmetry_deg: float = 360.0) -> float:
 
     symmetry_deg is the angle after which the object looks identical:
       360 -> no symmetry, 180 -> a lying vial or a rectangle, 90 -> a cube,
-      0   -> round from above (a standing vial, a lid): yaw never matters.
+      0   -> round from above (a standing vial, a cap): yaw never matters.
     """
     if symmetry_deg <= 0:
         return 0.0

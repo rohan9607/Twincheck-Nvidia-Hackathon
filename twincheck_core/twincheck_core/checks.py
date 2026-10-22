@@ -6,6 +6,8 @@ tested and shared by the ROS nodes, the twin trial runner and the analysis.
 """
 from __future__ import annotations
 
+import math
+
 from dataclasses import dataclass
 from enum import Enum
 
@@ -88,36 +90,58 @@ def check_post_grasp(observed: GraspState, expected: GraspState = GraspState.HOL
     return CheckOutcome(CheckPoint.POST_GRASP, False, reasons.get(observed, f"grasp state {observed.value}"))
 
 
+def newest(now: list[Detection], before: list[Detection]) -> Detection:
+    """The detection least explained by the earlier scene: farthest from any old part of its class."""
+    def gap(d: Detection) -> float:
+        return min((b.pose.distance_to(d.pose) for b in before if b.cls == d.cls), default=math.inf)
+    return max(now, key=gap)
+
+
 def check_post_place(cls: str, target_bin: BinSpec, detections: list[Detection], th: Thresholds,
                      all_bins: dict[str, BinSpec] | None = None,
-                     pick_point: Pose2D | None = None) -> CheckOutcome:
+                     pick_point: Pose2D | None = None,
+                     before: list[Detection] | None = None) -> CheckOutcome:
     """Did the object land in the right bin?
 
-    Looks for a detection of `cls` inside the target bin. If none, says where it went:
+    Looks for a `cls` that arrived in the target bin. If none, says where it went:
     another bin, still at the pick point (never picked), or nowhere visible (dropped).
+
+    Bins fill up during a run, so "is there a vial in the rework bin?" is true for every
+    pick after the first. With `before` (the scene at pre-pick), a place counts only if the
+    number of `cls` in the region went UP. Parts dropped on the same spot pile up, so we
+    count instead of matching positions. If the detector sees a pile as fewer parts, the
+    count does not rise and the check fails: a false alarm, never a missed failure.
+    Without `before`, any `cls` in the bin counts (an empty-bin start).
     """
-    in_target = [d for d in detections if d.cls == cls and d.confidence >= th.min_confidence
-                 and target_bin.contains(d.pose)]
+    old = before or []
+
+    def arrived(region) -> list[Detection]:
+        now = [d for d in detections if d.cls == cls and d.confidence >= th.min_confidence and region(d.pose)]
+        was = [d for d in old if d.cls == cls and d.confidence >= th.min_confidence and region(d.pose)]
+        return now if len(now) > len(was) else []
+
+    in_target = arrived(target_bin.contains)
     if in_target:
-        best = min(in_target, key=lambda d: d.pose.distance_to(target_bin.center))
+        best = newest(in_target, old)
         err = best.pose.distance_to(target_bin.center)
         return CheckOutcome(CheckPoint.POST_PLACE, True, f"{cls} in {target_bin.name}", err, None, best)
 
-    near_margin = [d for d in detections if d.cls == cls and target_bin.contains(d.pose, th.post_place_mm)]
+    near_margin = arrived(lambda p: target_bin.contains(p, th.post_place_mm) and not target_bin.contains(p))
     if near_margin:
+        d = newest(near_margin, old)
         return CheckOutcome(CheckPoint.POST_PLACE, False, f"{cls} on the edge of {target_bin.name}",
-                            near_margin[0].pose.distance_to(target_bin.center), None, near_margin[0])
+                            d.pose.distance_to(target_bin.center), None, d)
 
     for other in (all_bins or {}).values():
         if other.name == target_bin.name:
             continue
-        wrong = [d for d in detections if d.cls == cls and other.contains(d.pose)]
+        wrong = arrived(other.contains)
         if wrong:
             return CheckOutcome(CheckPoint.POST_PLACE, False,
                                 f"{cls} in the wrong bin ({other.name}, expected {target_bin.name})",
-                                wrong[0].pose.distance_to(target_bin.center), None, wrong[0])
+                                newest(wrong, old).pose.distance_to(target_bin.center), None, newest(wrong, old))
 
-    if pick_point is not None:
+    if pick_point is not None:   # full scene: a part that never moved is "old" by definition
         left = nearest_detection(pick_point, detections, cls, th.match_radius_mm, th.min_confidence)
         if left is not None:
             return CheckOutcome(CheckPoint.POST_PLACE, False, f"{cls} never left the pick area", None, None, left)

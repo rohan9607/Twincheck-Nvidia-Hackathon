@@ -1,65 +1,87 @@
 # TwinCheck project config: the one source of truth for objects, bins,
 # thresholds and pick points. Twin, real arm, tests and analysis all read it.
 #
-# Scenario (rework sorting cell): vials and loose lids rejected by the line's
-# inspection arrive mixed in a tray in random positions. The arm sorts them:
-# lids to a reuse bin, vials to a rework bin, cubes (stand-in parts) to their own bin.
+# The real cell (organizers' FAQ, CAD page and starter v0.5, read Oct 20): an SMC MHZL2-16D2 gripper whose
+# straight jaw faces open only 12 mm. Of the cell's objects, only the 10 mm cubes and the M6 screws fit.
+# The 16 mm cube, the vial (27 mm) and the cap (31.75 mm) need custom fingers (custom_hardware in
+# submission.yaml, reviewed by the organizers), so they stay here with real sizes and plan_grasp refuses them.
 #
-# ALL NUMBERS MARKED "TODO" ARE PLACEHOLDERS. Replace them after:
-#   - sim/explore_twin.py (object sizes, bin poses from the twin)
-#   - calib/ (table frame from the real calibration)
-#   - the plant manager (the robot program's real pick and place points)
+# Scenario (proposed, team to confirm): small-parts rework sorting. Rejected small parts (screws, and
+# 10 mm blocks standing in for machined parts) are dumped on the table at random positions; the arm sorts
+# them into bins by type. Random positions are why a blind, taught program fails.
+#
+# NUMBERS MARKED "TODO" ARE PLACEHOLDERS. Object and bin sizes are from the organizers' CAD page.
 
 frames:
   root: robot_base
-  table: table            # all poses below are in this frame, mm and degrees
+  table: table            # all poses below are in this frame, mm and degrees (x, y = robot base x, y)
 
 gripper:
-  max_opening_mm: 40.0    # TODO: measure the SCHUNK jaws (open) on the real fingers
-  clearance_mm: 4.0
+  model: SMC MHZL2-16D2   # custom aluminium fingers, 76 x 12 x 6 mm, hook-shaped notch at the tip
+  max_opening_mm: 12.0    # straight faces: 6 mm travel per jaw, 0 mm closed / 12 mm open
+  tip_gap_mm: [4.0, 16.0] # hooked fingertips: about 4 mm closed, 16 mm open (starter v0.5 MODEL_NOTES)
+  clearance_mm: 1.5       # slack needed beyond the part's narrow side (10 mm cube: 11.5 <= 12)
 
 objects:
   # symmetry_deg: angle after which the object looks the same from above
   #   0 = round (yaw ignored), 90 = cube, 180 = lying vial, 360 = no symmetry
-  cube:
+  # height_mm: as it lies on the table (its top face is where the table camera sees it)
+  cube:                   # 10 mm cube, red / yellow / blue
     symmetry_deg: 90
-    width_mm: 25          # TODO from twin
-    length_mm: 25
+    width_mm: 10
+    length_mm: 10
+    height_mm: 10
     target_bin: bin_cubes
-  vial:
-    symmetry_deg: 180
-    width_mm: 16          # TODO from twin (diameter, lying)
-    length_mm: 100
+  screw:                  # M6 x 30 countersunk (ISO 10642), lying; yaw points from the head to the tip
+    symmetry_deg: 360
+    width_mm: 6           # the shank: the fingers close across it (the head is 12 mm)
+    length_mm: 30
+    height_mm: 12
+    target_bin: bin_screws
+  # --- these do not fit the stock fingers (kept so plan_grasp refuses them with a reason) ---
+  cube_16:
+    symmetry_deg: 90
+    width_mm: 16
+    length_mm: 16
+    height_mm: 16
     target_bin: bin_rework
-  lid:
+  vial:                   # 27.18 x 203 mm, lying (starter v0.5 draws it 17 x 140: fix in its scene_config.py)
+    symmetry_deg: 180
+    width_mm: 27.18
+    length_mm: 203
+    height_mm: 27.18
+    target_bin: bin_rework
+  cap:                    # vial cap: 31.75 mm flange, 15.7 mm tall
     symmetry_deg: 0
-    width_mm: 20          # TODO from twin (diameter)
-    length_mm: 20
-    target_bin: bin_lids
+    width_mm: 31.75
+    length_mm: 31.75
+    height_mm: 15.7
+    target_bin: bin_rework
 
 bins:
+  # Every bin on the cell is 50 x 50 mm outside and 55 mm tall (35 x 35 mm pocket, 25 mm deep).
+  # Positions are ours to choose: give the operator the same ones in the client's submission/placement.yaml.
   bin_cubes:
-    center: {x_mm: 450, y_mm: -250}   # TODO from twin / calibration
-    half_x_mm: 60
-    half_y_mm: 60
+    center: {x_mm: 260, y_mm: 250}    # TODO confirm reachable and in the table camera's view (twin)
+    half_x_mm: 25
+    half_y_mm: 25
+  bin_screws:                         # the cell's yellow bin
+    center: {x_mm: 360, y_mm: 250}    # TODO
+    half_x_mm: 25
+    half_y_mm: 25
   bin_rework:
-    center: {x_mm: 450, y_mm: 0}      # TODO
-    half_x_mm: 60
-    half_y_mm: 90
-  bin_lids:
-    center: {x_mm: 450, y_mm: 250}    # TODO
-    half_x_mm: 60
-    half_y_mm: 60
+    center: {x_mm: 460, y_mm: 230}    # TODO
+    half_x_mm: 25
+    half_y_mm: 25
 
-# Pick points the robot's EXISTING program reaches for (Watch mode compares
-# against these). Get the real ones from the plant manager.
+# Pick points of the blind, fixed program (Baseline and Watch reach for these; Watch compares against them).
+# On the real cell they are the nominal positions we give the operator in placement.yaml.
 pick_points:
-  slot_1: {x_mm: 300, y_mm: -150, yaw_deg: 0}   # TODO
-  slot_2: {x_mm: 300, y_mm: 0, yaw_deg: 0}      # TODO
-  slot_3: {x_mm: 300, y_mm: 150, yaw_deg: 0}    # TODO
+  slot_1: {x_mm: 380, y_mm: -100, yaw_deg: 0}   # TODO: inside the starter's work area x 240-460, y -150..280
+  slot_2: {x_mm: 420, y_mm: 0, yaw_deg: 0}
+  slot_3: {x_mm: 380, y_mm: 100, yaw_deg: 0}
 
-# Joint-space waypoints used to detect robot events from joint_states (Watch mode).
-# Fill from the robot program or by recording joint_states at each point.
+# Joint-space waypoints used to detect robot events from joint_states (ROS Watch mode on the twin).
 waypoints:
   tolerance_rad: 0.02
   still_velocity_rad_s: 0.01
@@ -76,10 +98,12 @@ thresholds:
   sync_tolerance_ms: 100.0
   max_retries: 1
 
+# The cell has three cameras: table (fixed, overhead from the front), side (fixed, near table height, so
+# not usable for table x/y) and wrist. On the real cell the organizers' calibration (client package,
+# calibration/cameras.json) replaces our homography; the ROS twin pipeline still uses these entries.
 cameras:
-  overhead_a: {topic: /cam/overhead_a/image_raw, homography: calib/out/overhead_a_H.npy, intrinsics: calib/out/overhead_a_K.npz}
-  overhead_b: {topic: /cam/overhead_b/image_raw, homography: calib/out/overhead_b_H.npy, intrinsics: calib/out/overhead_b_K.npz}
-  wrist:      {topic: /cam/wrist/image_raw, intrinsics: calib/out/wrist_K.npz}
+  table: {topic: /cam/table/image_raw, homography: calib/out/table_H.npy, intrinsics: calib/out/table_K.npz}
+  wrist: {topic: /cam/wrist/image_raw, intrinsics: calib/out/wrist_K.npz}
 
 models:
   detector: models/overhead_obb.engine      # TensorRT on the Spark; .pt works too
@@ -91,7 +115,38 @@ models:
     api_key_env: NVIDIA_API_KEY
 
 safety:
-  guide_armed_default: false       # Guide never commands the arm unless armed explicitly
+  guide_armed_default: false       # the ROS Guide node never commands an arm unless armed explicitly
   max_velocity_scaling: 0.10
   max_acceleration_scaling: 0.10
-  workspace_limits_mm: {x_min: 150, x_max: 650, y_min: -400, y_max: 400, z_min: 5}   # TODO confirm with Dr. Zeng
+  workspace_limits_mm: {x_min: 150, x_max: 650, y_min: -400, y_max: 400, z_min: 5}
+
+# The organizers' cell (hackathon.sidclab.org; client github.com/SIDCLab/PhysicalAI-Hackathon-2026).
+# cell_policy/ returns fingertip targets from act(obs); the cell plays them only during an approved,
+# operator-supervised 30-minute slot, and enforces its own limits. These are OUR extra limits on top.
+cell:
+  uf0_z_offset_mm: -330.0          # tcp_pose and "tcp" actions are in UF0: x, y = base; z_uf0 = z_base - 330
+  surface_z_base_mm: -5.1          # work surface in the base frame (about -335 in UF0)
+  reach_mm: 550                    # beyond about 0.55 m from the base axis the controller faults
+  reach_margin_mm: 40
+  tcp_box_mm: {x: [150, 650], y: [-450, 450], z: [-334, 300]}   # the cell rejects rows outside (mock_cell.py)
+  fingers_down_wp_deg: [-180, 0]   # w, p for fingers straight down; r turns them about z
+  finger_yaw_offset_deg: 0         # TODO verify in the twin: r at which the fingers close along base +x
+                                   #   (cubes are 90-degree symmetric, so only screws depend on it)
+  step_s: 0.1                      # each returned row plays as one 0.1 s step
+  max_step_mm: 15                  # per row: 150 mm/s
+  max_step_deg: 10
+  settle_rows: 8                   # the real arm follows its targets about 0.8 s behind: hold this long
+  grip_rows: 5                     # rows to hold while the jaws close or open
+  hover_mm: 50                     # fingertips above the surface before descending
+  transit_mm: 110                  # fingertips above the surface when carrying (bins are 55 mm tall)
+  tip_clearance_mm: 2.5            # fingertips above the surface when grasping (starter v0.5)
+  release_above_rim_mm: 20
+  bin_height_mm: 55
+  park_tcp_mm: [170, -330, -60]    # UF0 x, y, z: arm out of the table camera's view for scans  TODO check
+  max_picks_per_rollout: 6
+  image_size: [1920, 1080]         # full frame: a 10 mm cube is only about 3 px wide at 640 x 360
+  image_format: jpeg
+  sequence:                        # what each rollout picks, in order (same order in placement.yaml)
+    - {cls: cube, pick_point: slot_1}
+    - {cls: screw, pick_point: slot_2}
+    - {cls: cube, pick_point: slot_3}
