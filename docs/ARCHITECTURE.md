@@ -18,7 +18,7 @@ robot (joint_states | manual | guide) -> robot_state_node ─/robot/event─┤
 
 | Topic | Type | From → To |
 |---|---|---|
-| `/cam/{overhead_a,overhead_b,wrist}/image_raw` | sensor_msgs/Image | cameras or Isaac Sim → perception, comparator |
+| `/cam/{table,side,wrist}/image_raw` | sensor_msgs/Image | cameras or Isaac Sim → perception, comparator |
 | `/perception/objects` | ObjectArray | detector → comparator, resync, guide |
 | `/perception/grasp_state` | GraspState | grasp_check → comparator |
 | `/robot/event` | RobotEvent | robot_state / guide → everyone |

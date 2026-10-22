@@ -17,6 +17,33 @@ ROS 2 on the laptop is only needed by whoever writes ROS nodes:
 - macOS / Windows: use the container: `docker build -f docker/ros.Dockerfile -t twincheck-ros .`
   then `docker run --rm -it --net=host -v $PWD:/twincheck twincheck-ros`.
 
+**Windows laptop: WSL Ubuntu 24.04 runs ROS 2 Jazzy natively** (no container needed):
+```bash
+# once, in WSL (sudo, or from Windows: wsl -d Ubuntu -u root)
+sudo apt install ros-jazzy-ros-base ros-jazzy-cv-bridge ros-dev-tools python3-colcon-common-extensions \
+    python3-pip python3-opencv python3-psycopg pyflakes3      # after adding the ROS apt source (ROS docs)
+pip3 install --user --break-system-packages -e twincheck_core
+source /opt/ros/jazzy/setup.bash && mkdir -p ~/tc_ws && cd ~/tc_ws \
+    && colcon build --symlink-install --base-paths /mnt/d/<repo>/ros2_ws/src
+```
+Building in `~/tc_ws` is fast and keeps build output out of the repo; `--symlink-install` means Python edits
+on D: take effect without rebuilding (rebuild after changing `.msg` files or `setup.py`). Postgres from
+`docker compose` on Windows is reachable from WSL at `127.0.0.1`.
+
+**Whole pipeline without the twin or the arm** (`fake_world` stands in for cameras, robot and shadow twin):
+```bash
+bash scripts/fake_world_run.sh watch fake_watch           # 30 trials, Watch: alerts, resync, DB, results tables
+bash scripts/fake_world_run.sh guide fake_guide -p n:=12 \
+    -p scenarios:=none,nudged_part,empty_grasp,nudged_empty -p weights:=2,1,1,1   # Guide, disarmed: retries
+```
+Guide stops on a bad place (removed mid-grasp, wrong bin) and waits for an operator `resume` on `/guide/command`,
+so a Guide run with those scenarios stalls by design; use the recoverable ones above.
+
+**The real cell** (the organizers' platform, not ROS): see `cell_policy/README.md`.
+
+WSL steps its clock often (NTP); the comparator logs "camera stamps jumped back in time" when that happens
+and drops the older frames. A few per run on WSL is normal.
+
 Check ROS works across two machines: `ros2 run demo_nodes_py talker` on one, `ros2 run demo_nodes_py listener`
 on the other, same Wi-Fi, same `ROS_DOMAIN_ID` (pick one number for the team and put it in `.env`).
 

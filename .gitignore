@@ -8,6 +8,8 @@ data/
 models/*.pt
 models/*.engine
 models/*.png
+/*.pt
+weights/
 runs/
 calib/raw/
 calib/out/
@@ -24,3 +26,8 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .venv/
+
+# organizers' material (kept locally, not redistributed)
+fanuc_er4ia_hackathon_starter_v05/
+Physical AI Hackathon*.pdf
+.vscode/
