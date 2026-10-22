@@ -8,7 +8,8 @@ starter's own build_scene.py with the remaining arguments.
         --headless --save /workspace/twincheck_scene.usd [--shoot /workspace/shots/scene1]
 
 The starter defines add_screws() but never calls it and has no screw dimensions; both are supplied here.
-A screw's prim origin is its head face; we place it so the shank centre (where we grasp) is on the pick point.
+A screw's prim origin is its head face; we place it so the middle of its length is on the pick point (the same
+rule as twin_common.place_part and the detector's box centre).
 """
 import argparse
 import math
@@ -39,8 +40,8 @@ def scenario(cfg):
             cubes.append((x, y, "yellow"))
             yaws.append(yaw)
         elif job["cls"] == "screw":
-            # tip points along +yaw from the head; the shank centre sits this far from the head face
-            d = SCREW_HEAD_H + (SCREW_LENGTH - SCREW_HEAD_H) / 2
+            # tip points along +yaw from the head; the middle of the screw is half its length from the head face
+            d = SCREW_LENGTH / 2
             screws.append((x - d * math.cos(math.radians(yaw)), y - d * math.sin(math.radians(yaw)), yaw))
         else:
             raise SystemExit(f"sequence class {job['cls']!r} is not in the sorting scene (cube, screw)")

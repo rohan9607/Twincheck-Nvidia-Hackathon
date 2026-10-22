@@ -16,22 +16,24 @@ cameras:
   wrist: /World/ER4iA/J6_link/WristCam
   resolution: [1920, 1080]                               # the real table/side cameras; the wrist is 1280 x 720
 
-objects:            # one prim per object type in the starter scene; copies are made for clutter
-                    # origins (checked Oct 22, explore_twin): cube = bottom-face centre on the surface;
-                    # screw = head face centre, lying on its side, tip along +yaw (build_twincheck_scene.py)
+objects:            # one prim per class in the sorting scene (build_twincheck_scene.py); copies are made for
+                    # clutter. These are the detector's classes. Vials and caps are not in the scene (too wide
+                    # for the jaws): add them back here and in the scene builder only with custom fingers.
   cube: /World/SortCube0                                 # 10 mm (starter CUBE_EDGE)
   screw: /World/Screw0                                   # added by sim/build_twincheck_scene.py
-  vial: /World/SortVial0
-  cap: /World/SortCap0
+
+origins:            # where each prim's origin sits on the part (checked Oct 22 with explore_twin; twin_common.place_part)
+  cube: bottom_centre                                    # centre of the bottom face, on the surface
+  screw: head_face_lying                                 # centre of the head face; lying, tip along +yaw
 
 table:
   # area on the table where objects are randomized, robot_base frame, mm
-  x_range_mm: [220, 400]
-  y_range_mm: [-220, 220]
+  x_range_mm: [240, 460]                                 # starter work area; reach and table view are fine here
+  y_range_mm: [-150, 180]                                # keeps clear of the bins (y 205-275)
   surface_z_mm: 894.9                                    # world z of the work surface (base at 0.90 m, surface 5.1 mm below)
   stage_units_per_mm: 0.001                              # USD stage in meters (check metersPerUnit)
 
-lights: []          # existing light prims to randomize; empty = add a dome light
+lights: [/World/DomeLight, /World/KeyLight, /World/FillLight, /World/RimLight]   # starter's; varied around their intensity
 
 ros:
   domain_id: 0

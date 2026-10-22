@@ -139,7 +139,7 @@ def run_trials(args, cfg, proj):
     import psycopg
     import rclpy
     from std_msgs.msg import String
-    from twin_common import get_pose_mm, set_pose_mm
+    from twin_common import nudge_mm, part_pose_mm, place_part, set_pose_mm
 
     tw = Twin(cfg, proj, publish_sensors=True)
     rclpy.init()
@@ -172,9 +172,9 @@ def run_trials(args, cfg, proj):
             dx, dy = rng.uniform(-args.spread_mm, args.spread_mm), rng.uniform(-args.spread_mm, args.spread_mm)
         if args.rung in ("random_rot", "second_object", "clutter", "lighting"):
             dyaw = rng.uniform(0, 360)
-        z = tbl["surface_z_mm"] + spec.get("height_mm", spec["width_mm"]) / 2
         obj = cfg["objects"][cls]
-        set_pose_mm(tw.stage, obj, pick["x_mm"] + dx, pick["y_mm"] + dy, z, pick.get("yaw_deg", 0) + dyaw)
+        place_part(tw.stage, obj, cfg["origins"][cls], spec, pick["x_mm"] + dx, pick["y_mm"] + dy,
+                   pick.get("yaw_deg", 0) + dyaw, tbl["surface_z_mm"])
         tw.step(20)
 
         bin_name = spec["target_bin"]
@@ -185,8 +185,7 @@ def run_trials(args, cfg, proj):
         tw.step(10)
 
         if args.induce == "nudged_part":   # someone bumps the part just before the grab
-            x, y, zz, yaw = get_pose_mm(tw.stage, obj)
-            set_pose_mm(tw.stage, obj, x + rng.choice([-1, 1]) * rng.uniform(20, 40), y, zz, yaw)
+            nudge_mm(tw.stage, obj, rng.choice([-1, 1]) * rng.uniform(20, 40), 0.0)
         if args.induce == "empty_grasp":   # the part is gone before the fingers close
             set_pose_mm(tw.stage, obj, 5000, 5000, -1000)
         tw.fingers(True)
@@ -202,7 +201,7 @@ def run_trials(args, cfg, proj):
         tw.step(40)
 
         # Ground truth from the twin itself: is the object inside its target bin now?
-        x, y, _, _ = get_pose_mm(tw.stage, obj)
+        x, y, _ = part_pose_mm(tw.stage, obj, cfg["origins"][cls], spec)
         b = proj["bins"][bin_name]
         success = abs(x - b["center"]["x_mm"]) <= b["half_x_mm"] and abs(y - b["center"]["y_mm"]) <= b["half_y_mm"]
         time.sleep(0.5)  # let the logger create the trial row
@@ -223,7 +222,7 @@ def run_trials(args, cfg, proj):
 def run_shadow(args, cfg, proj):
     import rclpy
     from sensor_msgs.msg import JointState
-    from twin_common import get_pose_mm, set_pose_mm
+    from twin_common import part_pose_mm, place_part
     from twincheck_msgs.msg import DetectedObject, ExpectedState, GraspState, ObjectArray, RobotEvent
 
     tw = Twin(cfg, proj, publish_sensors=False)
@@ -247,7 +246,7 @@ def run_shadow(args, cfg, proj):
                 id_to_prim[o.id] = prim
             used.add(prim)
             spec = proj["objects"][o.cls]
-            set_pose_mm(tw.stage, prim, o.x_mm, o.y_mm, cfg["table"]["surface_z_mm"] + spec.get("height_mm", spec["width_mm"]) / 2, o.yaw_deg)
+            place_part(tw.stage, prim, cfg["origins"][o.cls], spec, o.x_mm, o.y_mm, o.yaw_deg, cfg["table"]["surface_z_mm"])
     node.create_subscription(ObjectArray, "/twin/set_poses", on_set, 10)
 
     exp_pub = node.create_publisher(ExpectedState, "/twin/expected", 10)
@@ -263,7 +262,8 @@ def run_shadow(args, cfg, proj):
             return True
         best = None
         for oid, prim in id_to_prim.items():
-            x, y, _, yaw = get_pose_mm(tw.stage, prim)
+            cls = next(c for c, ps in pool.items() if prim in ps)
+            x, y, yaw = part_pose_mm(tw.stage, prim, cfg["origins"][cls], proj["objects"][cls])
             d = math.hypot(x - pp["x_mm"], y - pp["y_mm"])
             if best is None or d < best[0]:
                 best = (d, x, y, yaw)
@@ -314,8 +314,8 @@ def run_shadow(args, cfg, proj):
                 arr.header.stamp = node.get_clock().now().to_msg()
                 arr.header.frame_id = "table"
                 for oid, prim in id_to_prim.items():
-                    x, y, _, yaw = get_pose_mm(tw.stage, prim)
                     cls = next(c for c, ps in pool.items() if prim in ps)
+                    x, y, yaw = part_pose_mm(tw.stage, prim, cfg["origins"][cls], proj["objects"][cls])
                     arr.objects.append(DetectedObject(id=oid, cls=cls, x_mm=x, y_mm=y, yaw_deg=yaw, confidence=1.0, camera="twin"))
                 obj_pub.publish(arr)
                 last_pub = time.time()

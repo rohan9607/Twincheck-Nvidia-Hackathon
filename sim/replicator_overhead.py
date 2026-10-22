@@ -45,7 +45,8 @@ def main():
 
     app = start_app(headless=True)
     import omni.replicator.core as rep
-    from twin_common import duplicate_prim, get_pose_mm, meters_per_unit, obb_corners_mm, open_stage, project_points, set_pose_mm
+    from twin_common import (duplicate_prim, footprint_mm, jitter_prim, local_matrix, meters_per_unit, obb_corners_mm,
+                             open_stage, place_part, project_points, scene_copies, set_pose_mm)
 
     stage = open_stage(cfg["usd_path"])
     mpu = meters_per_unit(stage)
@@ -53,18 +54,24 @@ def main():
     tbl = cfg["table"]
     rep.orchestrator.set_capture_on_play(False)
 
-    # A pool of object copies: max_objects of each class, parked far away when unused.
+    # A pool of object copies: the scene's own copies plus duplicates up to max_objects, parked far away when unused.
     pool = {}
     for cls, src in cfg["objects"].items():
-        pool[cls] = [src] + [str(duplicate_prim(stage, src, f"{src}_copy{i}").GetPath())
-                             for i in range(1, args.max_objects)]
+        own = scene_copies(stage, src)
+        pool[cls] = own + [str(duplicate_prim(stage, src, f"{src}_copy{i}").GetPath())
+                           for i in range(len(own), args.max_objects)]
     park = lambda p: set_pose_mm(stage, p, 5000, 5000, -1000)  # noqa: E731
 
-    # Lights
+    # Lights: the scene's own lights, varied around their authored intensity
     light_paths = cfg.get("lights") or []
     if not light_paths:
         dome = rep.create.light(light_type="Dome", intensity=1000)
         light_paths = [str(dome.get_output_prims()["prims"][0].GetPath())]
+    light_home = {}
+    for lp in light_paths:
+        a = stage.GetPrimAtPath(lp).GetAttribute("inputs:intensity")
+        if a and a.Get() is not None:
+            light_home[lp] = (a, float(a.Get()))
 
     # Cameras: remember the calibrated pose so jitter is always around it
     cams = {}
@@ -75,7 +82,7 @@ def main():
         par = rep.AnnotatorRegistry.get_annotator("camera_params")
         rgb.attach(rp)
         par.attach(rp)
-        cams[cam] = {"path": path, "home": get_pose_mm(stage, path), "rgb": rgb, "params": par}
+        cams[cam] = {"path": path, "home": local_matrix(stage, path), "rgb": rgb, "params": par}
 
     out = Path(args.out)
     for split in ("train", "val"):
@@ -99,31 +106,27 @@ def main():
             for _try in range(30):
                 x = rng.uniform(*tbl["x_range_mm"])
                 y = rng.uniform(*tbl["y_range_mm"])
-                min_gap = 5 if args.clutter else max(spec["length_mm"], spec["width_mm"]) + 15
+                min_gap = 5 if args.clutter else max(footprint_mm(spec)) + 15
                 if all(np.hypot(x - px, y - py) > min_gap for _, _, px, py, _ in placed):
                     break
             yaw = rng.uniform(0, 360)
-            set_pose_mm(stage, free[0], x, y, tbl["surface_z_mm"] + spec.get("height_mm", spec["width_mm"]) / 2, yaw)
+            place_part(stage, free[0], cfg["origins"][cls], spec, x, y, yaw, tbl["surface_z_mm"])
             placed.append((cls, free[0], x, y, yaw))
 
         # ---- randomize light
-        lo, hi = (600, 1600) if args.lighting == "mild" else (200, 3000)
+        lo, hi = (0.6, 1.4) if args.lighting == "mild" else (0.25, 2.0)
+        for a, home in light_home.values():
+            a.Set(home * rng.uniform(lo, hi))
         for lp in light_paths:
-            prim = stage.GetPrimAtPath(lp)
-            for attr in ("inputs:intensity", "intensity"):
-                a = prim.GetAttribute(attr)
-                if a:
-                    a.Set(rng.uniform(lo, hi))
-            for attr in ("inputs:colorTemperature", "colorTemperature"):
-                a = prim.GetAttribute(attr)
-                if a:
-                    a.Set(rng.uniform(4000, 6500))
+            a = stage.GetPrimAtPath(lp).GetAttribute("inputs:colorTemperature")
+            if a:
+                a.Set(rng.uniform(4000, 6500))
 
         split = "val" if rng.random() < args.val_frac else "train"
         for cam, c in cams.items():
-            hx, hy, hz, hyaw = c["home"]
-            set_pose_mm(stage, c["path"], hx + rng.gauss(0, args.cam_jitter_mm / 2), hy + rng.gauss(0, args.cam_jitter_mm / 2),
-                        hz, hyaw + rng.gauss(0, args.cam_jitter_deg))
+            axis = np.random.normal(size=3)
+            jitter_prim(stage, c["path"], c["home"], *(rng.gauss(0, args.cam_jitter_mm / 2) for _ in range(3)),
+                        rng.gauss(0, args.cam_jitter_deg), axis / np.linalg.norm(axis))
         rep.orchestrator.step(rt_subframes=8)
 
         for cam, c in cams.items():
@@ -142,7 +145,7 @@ def main():
             for cls, _, x, y, yaw in placed:
                 spec = proj["objects"][cls]
                 corners = obb_corners_mm(x, y, tbl["surface_z_mm"] + spec.get("height_mm", spec["width_mm"]),
-                                         yaw, spec["length_mm"], spec["width_mm"])
+                                         yaw, *footprint_mm(spec))
                 px = project_points(corners / 1000 / mpu, view, projm, W, H)
                 if (px[:, 0].max() < 0 or px[:, 0].min() > W or px[:, 1].max() < 0 or px[:, 1].min() > H):
                     continue  # outside this camera's view

@@ -36,7 +36,7 @@ def main():
     app = start_app(headless=True)
     import omni.replicator.core as rep
     from PIL import Image
-    from twin_common import get_pose_mm, import_articulation, open_stage, set_pose_mm
+    from twin_common import get_pose_mm, import_articulation, open_stage, scene_copies, set_pose_mm
 
     stage = open_stage(cfg["usd_path"])
     try:
@@ -63,6 +63,7 @@ def main():
 
     classes = list(cfg["objects"].keys())
     park = lambda p: set_pose_mm(stage, p, 5000, 5000, -1000)  # noqa: E731
+    all_parts = [p for src in cfg["objects"].values() for p in scene_copies(stage, src)]
 
     def set_fingers(value):
         """value: one joint value for every finger joint, or a list (one per joint, e.g. jaw_l, jaw_r)."""
@@ -78,7 +79,7 @@ def main():
         return np.asarray(rgb.get_data())[..., :3]
 
     # Empty reference: fingers closed, no object.
-    for p in cfg["objects"].values():
+    for p in all_parts:
         park(p)
     set_fingers(cfg["robot"]["finger_closed"])
     Image.fromarray(render()).save(out / "empty_reference.png")
@@ -86,7 +87,7 @@ def main():
     per_state = args.n // len(STATES)
     for state in STATES:
         for k in range(per_state):
-            for p in cfg["objects"].values():
+            for p in all_parts:
                 park(p)
             tx, ty, tz, tyaw = get_pose_mm(stage, cfg["robot"]["tool_link"])
             cls = rng.choice(classes)
