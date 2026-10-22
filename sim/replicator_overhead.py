@@ -73,6 +73,11 @@ def main():
     ap.add_argument("--arm", choices=["fixed", "random"], default="fixed", help="random: a new arm pose per frame")
     ap.add_argument("--colours", nargs="+", default=["yellow"], help="cube colours (the cube USD's colour variants)")
     ap.add_argument("--distractors", type=int, default=0, help="up to this many non-part shapes per frame")
+    ap.add_argument("--in-bin", type=float, default=0.0,
+                    help="share of parts dropped into a bin pocket instead of on the table (the post-place view)")
+    ap.add_argument("--bin-floor-mm", type=float, default=30.0, help="bin pocket floor above the surface "
+                    "(build_twincheck_scene.py: 55 mm tall, 25 mm deep)")
+    ap.add_argument("--bin-pocket-mm", type=float, default=35.0)
     ap.add_argument("--min-visible", type=float, default=0.6, help="share of each part the arm may not hide")
     ap.add_argument("--starter", default="/workspace/fanuc_er4ia_sim", help="starter folder (fk.py, scene_config.py)")
     args = ap.parse_args()
@@ -202,9 +207,11 @@ def main():
                 UsdShade.MaterialBindingAPI(prim).Bind(mat)
                 UsdGeom.Gprim(prim).GetDisplayColorAttr().Set([rgb])
 
-    def outline_px(cls, x, y, yaw, view, projm):
+    def outline_px(cls, x, y, yaw, view, projm, lift_mm=0.0):
+        """lift_mm: how far the part rests above the table surface (a bin's pocket floor)."""
         spec = proj["objects"][cls]
-        corners = obb_corners_mm(x, y, surface_mm + spec.get("height_mm", spec["width_mm"]), yaw, *footprint_mm(spec))
+        corners = obb_corners_mm(x, y, surface_mm + lift_mm + spec.get("height_mm", spec["width_mm"]), yaw,
+                                 *footprint_mm(spec))
         return project_points(corners / 1000 / mpu, view, projm, W, H)
 
     def hidden_share(seg, px):
@@ -226,6 +233,8 @@ def main():
             for p in paths:
                 park(p)
         placed, outlines = [], []
+        lift = {}       # part path -> mm above the surface (in a bin)
+        bin_parts = {}  # bin name -> parts already in it (one per bin: the pocket is 35 mm)
         margin = 1.0 if (args.clutter and rng.random() < 0.5) else 15.0
         for _ in range(rng.randint(1, args.max_objects)):
             cls = rng.choice(classes)
@@ -233,6 +242,22 @@ def main():
             if not free:
                 continue
             spec = proj["objects"][cls]
+            free_bins = [b for b in proj["bins"] if b not in bin_parts]
+            if free_bins and rng.random() < args.in_bin:
+                # in a bin: anywhere its footprint stays inside the pocket at this yaw
+                name = rng.choice(free_bins)
+                b = proj["bins"][name]["center"]
+                yaw = rng.uniform(0, 360)
+                fp = obb_corners_mm(0, 0, 0, yaw, *footprint_mm(spec))[:, :2]
+                room = np.maximum(args.bin_pocket_mm / 2 - 1.0 - np.abs(fp).max(axis=0), 0.0)
+                x, y = b["x_mm"] + rng.uniform(-room[0], room[0]), b["y_mm"] + rng.uniform(-room[1], room[1])
+                place_part(stage, free[0], cfg["origins"][cls], spec, x, y, yaw, surface_mm + args.bin_floor_mm)
+                if cls == "cube":
+                    set_cube_colour(free[0], rng.choice(args.colours))
+                placed.append((cls, free[0], x, y, yaw))
+                lift[free[0]] = args.bin_floor_mm
+                bin_parts[name] = free[0]
+                continue
             for _try in range(40):
                 x, y = rng.uniform(*tbl["x_range_mm"]), rng.uniform(*tbl["y_range_mm"])
                 yaw = rng.uniform(0, 360)
@@ -303,8 +328,9 @@ def main():
                 arm_ids = [int(k) for k, v in seg["info"]["idToLabels"].items()
                            if str(v).startswith(cfg["robot"]["articulation"])]
                 arm_mask = np.isin(seg["data"], arm_ids)
-                for cls, _, x, y, yaw in placed:
-                    worst = max(worst, hidden_share(arm_mask, outline_px(cls, x, y, yaw, view, projm)))
+                for cls, path, x, y, yaw in placed:
+                    worst = max(worst, hidden_share(arm_mask, outline_px(cls, x, y, yaw, view, projm,
+                                                                         lift.get(path, 0.0))))
             if worst <= 1.0 - args.min_visible:
                 break
             rerolls += 1
@@ -323,15 +349,16 @@ def main():
             frame.save(out / "images" / split / f"{stem}.jpg", quality=92)
 
             lines = []
-            for cls, _, x, y, yaw in placed:
-                px = outline_px(cls, x, y, yaw, view, projm)
+            for cls, path, x, y, yaw in placed:
+                px = outline_px(cls, x, y, yaw, view, projm, lift.get(path, 0.0))
                 if (px[:, 0].max() < 0 or px[:, 0].min() > W or px[:, 1].max() < 0 or px[:, 1].min() > H):
                     continue  # outside this camera's view
                 norm = np.clip(px / [W, H], 0, 1).flatten()
                 lines.append(f"{classes.index(cls)} " + " ".join(f"{v:.6f}" for v in norm))
             (out / "labels" / split / f"{stem}.txt").write_text("\n".join(lines))
             meta.append({"image": f"{split}/{stem}.jpg", "camera": cam, "arm_deg": arm_deg, "objects": [
-                {"cls": cl, "x_mm": x, "y_mm": y, "yaw_deg": yw} for cl, _, x, y, yw in placed]})
+                {"cls": cl, "x_mm": x, "y_mm": y, "yaw_deg": yw, "lift_mm": lift.get(pa, 0.0)}
+                for cl, pa, x, y, yw in placed]})
 
         if f % 50 == 0:
             print(f"frame {f}/{args.n}  (arm re-posed {rerolls} times so far)", flush=True)
