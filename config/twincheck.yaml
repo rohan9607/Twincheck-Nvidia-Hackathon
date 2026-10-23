@@ -136,7 +136,8 @@ cell:
   step_s: 0.1                      # each returned row plays as one 0.1 s step
   max_step_mm: 15                  # per row: 150 mm/s
   max_step_deg: 10
-  settle_rows: 8                   # the real arm follows its targets about 0.8 s behind: hold this long
+  settle_rows: 20                  # the real arm follows its targets about 0.8 s behind: hold this long
+                                   #   (8 closed the jaws in the air above the cube on the real cell, Oct 23)
   grip_rows: 5                     # rows to hold while the jaws close or open
   hover_mm: 50                     # fingertips above the surface before descending
   transit_mm: 110                  # fingertips above the surface when carrying (bins are 55 mm tall)
