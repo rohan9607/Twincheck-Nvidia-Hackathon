@@ -341,3 +341,22 @@ def test_threshold_sweep_picks_full_recall():
     rows = threshold_sweep([25, 30, 40], [2, 3, 12], [5, 10, 15, 20, 28])
     best = pick_threshold(rows)
     assert best["threshold"] == 20 and best["false_alarms"] == 0
+
+
+# ---------- the operator's placement file ----------
+def test_placement_gives_screw_head_and_only_used_bins():
+    import random
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "cell_policy"))
+    from make_placement import layout
+    centres, _ = layout(CFG, None, 0)
+    heads, _ = layout(CFG, None, 0, heads=True)
+    (cx, cy, yaw), (hx, hy, _) = centres["screw"][0], heads["screw"][0]
+    half = CFG.objects["screw"].length_mm / 2
+    assert (hx, hy) == (round(cx - half * math.cos(math.radians(yaw))), round(cy - half * math.sin(math.radians(yaw))))
+    assert heads["cube"] == centres["cube"]                      # only screws have a head
+    used = {CFG.objects[j["cls"]].target_bin for j in CFG.raw["cell"]["sequence"]}
+    assert len(heads["bin"]) == len(used)
+    nudged, _ = layout(CFG, random.Random(3), 30, heads=True)    # nudged screws: head half a length behind
+    sx, sy, syaw = nudged["screw"][0]
+    assert abs(math.hypot(sx - cx, sy - cy)) <= 30 + half + 1
