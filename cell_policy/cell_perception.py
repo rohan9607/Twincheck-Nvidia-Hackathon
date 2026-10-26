@@ -2,7 +2,9 @@
 
 Pixels map to the table with the organizers' calibration (client package, calibration/geometry.py:
 pixel_to_base), so our own homography is not needed on the real cell. A part is seen by its top face,
-so each class's pixel ray is cut at the surface plus that class's height.
+so each class's pixel ray is cut at the surface plus that class's height. A part in a bin rests 30 mm higher,
+on the pocket floor; cut at the table, the angled camera's ray would land it up to about 24 mm off (twin,
+Oct 26). So each part is also cut at the floor height, and kept there if that lands inside a bin's pocket.
 """
 from __future__ import annotations
 
@@ -32,6 +34,7 @@ class TableDetector:
         self.cfg = cfg
         self.conf = conf
         self.surface_m = cfg.raw["cell"]["surface_z_base_mm"] / 1000.0
+        self.floor_m = cfg.raw["cell"]["bin_floor_mm"] / 1000.0
 
     def _table_mm(self, u: float, v: float, z_m: float) -> tuple[float, float]:
         p = self.to_base(self.cam, (u, v), z=z_m)
@@ -53,6 +56,9 @@ class TableDetector:
             z = self.surface_m + spec.height_mm / 1000.0
             ang = float(r) + (math.pi / 2 if bh > bw else 0.0)          # long axis in the image
             u, v = float(cx) * sx, float(cy) * sy
+            xb, yb = self._table_mm(u, v, z + self.floor_m)
+            if self.cfg.bin_pocket_at(Pose2D(xb, yb)) is not None:       # resting in a bin
+                z += self.floor_m
             x, y = self._table_mm(u, v, z)
             x2, y2 = self._table_mm(u + 20 * math.cos(ang), v + 20 * math.sin(ang), z)
             yaw = canonical_yaw(math.degrees(math.atan2(y2 - y, x2 - x)), spec.symmetry_deg)

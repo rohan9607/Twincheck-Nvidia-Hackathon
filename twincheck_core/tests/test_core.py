@@ -447,6 +447,15 @@ def test_pickloop_table_grasp_check_retries_from_the_same_scene():
     assert [e.kind for e in ev].count("trial") == 1
 
 
+def test_bin_pocket_at_only_inside_the_pocket():
+    b = CFG.bins["bin_cubes"]
+    half = CFG.raw["cell"]["bin_pocket_mm"] / 2
+    assert CFG.bin_pocket_at(b.center) is b
+    assert CFG.bin_pocket_at(Pose2D(b.center.x_mm + half - 1, b.center.y_mm - half + 1)) is b
+    assert CFG.bin_pocket_at(Pose2D(b.center.x_mm + half + 2, b.center.y_mm)) is None     # the wall, not the pocket
+    assert CFG.bin_pocket_at(CFG.pick_points["slot_1"]) is None
+
+
 # ---------- stats ----------
 def test_wilson_matches_doc_table():
     lo, hi = wilson_interval(18, 20)
