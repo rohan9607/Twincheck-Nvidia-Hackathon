@@ -134,6 +134,26 @@ def test_guide_bad_place_stops():
     c.start_trial(1, "cube", CFG.pick_points["slot_1"])
     d = c.on_place_done([])
     assert d.outcome.check_point == CheckPoint.POST_PLACE and d.action == Action.STOP
+    c = Comparator(CFG, Mode.GUIDE, stop_on_bad_place=False)       # the cell: alert and go on
+    c.start_trial(1, "cube", CFG.pick_points["slot_1"])
+    d = c.on_place_done([])
+    assert not d.outcome.passed and d.action == Action.ALERT
+
+
+def test_post_place_counts_any_new_part_in_the_target_bin():
+    screws, cubes = CFG.bins["bin_screws"], CFG.bins["bin_cubes"]
+    pick = CFG.pick_points["slot_2"]
+    th = CFG.thresholds
+    seen_as_cubes = [Detection("cube", Pose2D(screws.center.x_mm - 5, screws.center.y_mm - 10)),
+                     Detection("cube", Pose2D(screws.center.x_mm + 9, screws.center.y_mm - 5))]
+    ok = check_post_place("screw", screws, seen_as_cubes, th, CFG.bins, pick, [Detection("screw", pick)])
+    assert ok.passed and "seen as cube" in ok.reason
+    # a cube already in the cube bin does not make a lost screw pass, and the wrong bin still fails
+    lost = check_post_place("screw", screws, [Detection("cube", cubes.center)], th, CFG.bins, pick,
+                            [Detection("cube", cubes.center)])
+    assert not lost.passed
+    wrong = check_post_place("screw", screws, [Detection("screw", cubes.center)], th, CFG.bins, pick, [])
+    assert not wrong.passed and "wrong bin" in wrong.reason
 
 
 def test_comparator_post_place_uses_pre_pick_scene():

@@ -53,9 +53,10 @@ class Comparator:
 
     KEEP_TRIALS = 20
 
-    def __init__(self, cfg: Config, mode: Mode = Mode.WATCH):
+    def __init__(self, cfg: Config, mode: Mode = Mode.WATCH, stop_on_bad_place: bool = True):
         self.cfg = cfg
         self.mode = mode
+        self.stop_on_bad_place = stop_on_bad_place   # False: guide alerts and goes on (no retry can fix a place)
         self.trials: dict[int, TrialState] = {}
         self.trial: TrialState | None = None   # the latest started trial
 
@@ -115,6 +116,8 @@ class Comparator:
         # A failed grasp is retried once from a fresh detection. A bad placement, or
         # any failure after the retry budget, stops the arm for the operator.
         if out.check_point == CheckPoint.POST_PLACE:
+            if not self.stop_on_bad_place:
+                return Decision(t.trial_id, out, Action.ALERT, urgent)
             return Decision(t.trial_id, out, Action.STOP, True)
         if t.retries < self.cfg.thresholds.max_retries:
             t.retries += 1

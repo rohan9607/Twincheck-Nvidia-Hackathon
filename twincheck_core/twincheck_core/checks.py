@@ -122,19 +122,25 @@ def check_post_place(cls: str, target_bin: BinSpec, detections: list[Detection],
     count instead of matching positions. If the detector sees a pile as fewer parts, the
     count does not rise and the check fails: a false alarm, never a missed failure.
     Without `before`, any `cls` in the bin counts (an empty-bin start).
+
+    In the target bin a new part of any class counts too: we know what we carried, and a part half hidden
+    in a pocket is often seen as the other class (a screw leaning in its bin read as cubes in the twin).
     """
     old = before or []
 
-    def arrived(region) -> list[Detection]:
-        now = [d for d in detections if d.cls == cls and d.confidence >= th.min_confidence and region(d.pose)]
-        was = [d for d in old if d.cls == cls and d.confidence >= th.min_confidence and region(d.pose)]
+    def arrived(region, any_cls: bool = False) -> list[Detection]:
+        def ours(d: Detection) -> bool:
+            return (any_cls or d.cls == cls) and d.confidence >= th.min_confidence and region(d.pose)
+        now, was = [d for d in detections if ours(d)], [d for d in old if ours(d)]
         return now if len(now) > len(was) else []
 
-    in_target = arrived(target_bin.contains)
-    if in_target:
-        best = newest(in_target, old)
-        err = best.pose.distance_to(target_bin.center)
-        return CheckOutcome(CheckPoint.POST_PLACE, True, f"{cls} in {target_bin.name}", err, None, best)
+    for any_cls in (False, True):
+        in_target = arrived(target_bin.contains, any_cls)
+        if in_target:
+            best = newest(in_target, old)
+            err = best.pose.distance_to(target_bin.center)
+            seen = f" (seen as {best.cls})" if best.cls != cls else ""
+            return CheckOutcome(CheckPoint.POST_PLACE, True, f"{cls} in {target_bin.name}{seen}", err, None, best)
 
     near_margin = arrived(lambda p: target_bin.contains(p, th.post_place_mm) and not target_bin.contains(p))
     if near_margin:

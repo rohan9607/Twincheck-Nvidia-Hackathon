@@ -20,7 +20,8 @@ Modes (the same comparison the twin runs):
   baseline  blind fixed program: reaches for the configured pick points; checks are logged only
   watch     the same blind motion; failed checks are alerts
   guide     aims at the part the camera sees; a failed grasp retries once from a fresh scan;
-            a bad place, or a failure with no retries left, stops the rollout (the arm parks and holds)
+            a failure with no retries left stops the rollout (the arm parks and holds); a bad place
+            stops it too unless cell.stop_on_bad_place is false (then it is an alert, and the next part goes)
 """
 from __future__ import annotations
 
@@ -96,7 +97,8 @@ class PickLoop:
             raise ValueError(f"cell.grasp_check must be wrist or table, not {self.grasp_by!r}")
         self._grasp_at: Pose2D | None = None
         # baseline runs the checks like watch; only what we do with a failure differs
-        self.comparator = Comparator(self.cfg, Mode.GUIDE if self.mode == "guide" else Mode.WATCH)
+        self.comparator = Comparator(self.cfg, Mode.GUIDE if self.mode == "guide" else Mode.WATCH,
+                                     stop_on_bad_place=bool(self.cfg.raw["cell"].get("stop_on_bad_place", True)))
         self.phase = _Phase.START
         self._needs = Need.NOTHING
         self.last: Row | None = None        # the last row queued (where the arm will end up)

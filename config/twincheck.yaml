@@ -156,6 +156,9 @@ cell:
   bin_pocket_mm: 35                #   in a 35 x 35 mm pocket (organizers' CAD)
   park_tcp_mm: [170, -330, -60]    # UF0 x, y, z: arm out of the table camera's view for scans  TODO check
   max_picks_per_rollout: 6
+  stop_on_bad_place: false         # guide: a failed post-place check alerts and goes on to the next part.
+                                   #   No retry can fix a place, so stopping only forfeits the rest; in the twin
+                                   #   every stop was a false alarm on a part hidden in its pocket (Oct 26)
   grasp_check: table               # post-grasp: table (park, look where the part was: proven detector) |
                                    #   wrist (needs a wrist method that works on the real camera)
   image_size: [1920, 1080]         # full frame: a 10 mm cube is only about 3 px wide at 640 x 360
