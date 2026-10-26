@@ -8,6 +8,11 @@ the arm, returns those rows, and sets `needs`. The policy then fills that part o
       -> wrist camera: post-grasp check -> PLACE (carry high, release over the bin)
       -> SCAN: post-place check, and the same scene is the next job's pre-pick scene
 
+Every leg ends at an arrival gate: with feedback (view.tcp), the next leg, a gripper change and a camera
+look wait until the measured fingertip is at the leg's goal. The real arm moves at about 55 mm/s and heads
+straight for the latest target, so open-loop rows cut corners onto the parts and closed the jaws in the air
+(dry run, Oct 23). Without feedback (the mock's first step, unit tests) the gates are skipped.
+
 Modes (the same comparison the twin runs):
   baseline  blind fixed program: reaches for the configured pick points; checks are logged only
   watch     the same blind motion; failed checks are alerts
@@ -58,6 +63,12 @@ class Event:
     note: str = ""
 
 
+@dataclass(frozen=True)
+class _Arrive:
+    """Gate in the row queue: play nothing after it until the arm is at `row` (pose, R and gripper)."""
+    row: Row
+
+
 class _Phase(str, Enum):
     START = "start"
     SCAN = "scan"           # parked; the next view has a scene
@@ -79,8 +90,11 @@ class PickLoop:
         # baseline runs the checks like watch; only what we do with a failure differs
         self.comparator = Comparator(self.cfg, Mode.GUIDE if self.mode == "guide" else Mode.WATCH)
         self.phase = _Phase.START
-        self.needs = Need.NOTHING
-        self.last: Row | None = None
+        self._needs = Need.NOTHING
+        self.last: Row | None = None        # the last row queued (where the arm will end up)
+        self._queue: list = []              # rows and _Arrive gates not yet returned
+        self._gate: _Arrive | None = None   # waiting for this arrival
+        self._waited = 0                    # rows held at the current gate
         self.job_i = 0
         self.picks = 0
         self.next_id = self.first_trial_id
@@ -92,16 +106,49 @@ class PickLoop:
     def done(self) -> bool:
         return self.phase == _Phase.DONE
 
+    @property
+    def needs(self) -> Need:
+        """What the next view must carry. Only once every queued row has played and the arm has arrived."""
+        return self._needs if not self._queue and self._gate is None else Need.NOTHING
+
     def step(self, view: View) -> list[Row]:
         """Rows to play next (never empty: when done, hold where the arm is)."""
         if self.last is None:
             g = 1.0 if view.gripper >= 0.5 else 0.0
             self.last = (list(view.tcp[:6]) + [g]) if view.tcp else self.spec.down(*self.spec.park, 0.0, g)
-        try:
-            rows = self._advance(view)
-        except OutsideWorkspace as e:
-            rows = self._finish("stop", f"refused a target outside our workspace: {e}")
-        return rows or [list(self.last)]
+        if self._gate is not None:
+            if not self._at(view, self._gate.row):
+                self._waited += self.spec.wait_chunk_rows
+                if self._waited <= self.spec.arrive_timeout_rows:
+                    return [list(self._gate.row) for _ in range(self.spec.wait_chunk_rows)]
+                goal, tcp = [round(v, 1) for v in self._gate.row[:3]], [round(v, 1) for v in view.tcp[:3]]
+                self._queue, self.last, self._gate = [], list(self._gate.row), None
+                return self._release(view, self._finish(
+                    "stop", f"the arm did not reach {goal} (it is at {tcp}): blocked, e.g. resting on a part"))
+            self._gate = None
+        if not self._queue:
+            try:
+                self._queue = self._advance(view)
+            except OutsideWorkspace as e:
+                self._queue = self._finish("stop", f"refused a target outside our workspace: {e}")
+        return self._release(view, [])
+
+    def _at(self, view: View, row: Row) -> bool:
+        return (view.tcp is None or self.spec.arrived(view.tcp, row)) and (view.gripper >= 0.5) == (row[6] >= 0.5)
+
+    def _release(self, view: View, rows: list) -> list[Row]:
+        """Queued rows up to the next arrival gate. Without feedback the gates pass straight away."""
+        self._queue = rows + self._queue
+        out: list[Row] = []
+        while self._queue:
+            item = self._queue.pop(0)
+            if isinstance(item, _Arrive):
+                if view.tcp is None:
+                    continue
+                self._gate, self._waited = item, 0
+                break
+            out.append(item)
+        return out or [list(self._gate.row if self._gate else self.last)]
 
     def drain_events(self) -> list[Event]:
         out, self.events = self.events, []
@@ -172,19 +219,20 @@ class PickLoop:
         return min(loose, key=lambda d: d.pose.distance_to(job.nominal)).pose
 
     # ------------------------------------------------------------------ motions
-    def _go(self, x: float, y: float, z: float, r: float, gripper: float) -> list[Row]:
+    def _go(self, x: float, y: float, z: float, r: float, gripper: float) -> list:
         goal = self.spec.down(x, y, z, r, gripper)
         check_row(self.spec, goal)
         rows = interpolate(self.spec, self.last, goal)
         for row in rows:
             check_row(self.spec, row)
         self.last = rows[-1]
-        return rows
+        return rows + [_Arrive(list(self.last))]
 
-    def _hold(self, n: int, gripper: float | None = None) -> list[Row]:
-        if gripper is not None:
-            self.last = self.last[:6] + [gripper]
-        return [list(self.last) for _ in range(n)]
+    def _hold(self, n: int, gripper: float | None = None) -> list:
+        if gripper is None:
+            return [list(self.last) for _ in range(n)]
+        self.last = self.last[:6] + [gripper]
+        return [list(self.last) for _ in range(n)] + [_Arrive(list(self.last))]
 
     def _up_to(self, z: float) -> list[Row]:
         """Straight up first, so a carried part never sweeps through a bin wall."""
@@ -196,7 +244,7 @@ class PickLoop:
         s = self.spec
         x, y, z = s.park
         rows = self._up_to(s.z_above_surface(s.transit_mm)) + self._go(x, y, z, 0.0, self.last[6])
-        self.phase, self.needs = _Phase.SCAN, Need.SCENE
+        self.phase, self._needs = _Phase.SCAN, Need.SCENE
         return rows + self._hold(s.settle_rows)
 
     def _pick(self, at: Pose2D) -> list[Row]:
@@ -211,7 +259,7 @@ class PickLoop:
                 + self._hold(s.grip_rows, 1.0)
                 + self._go(at.x_mm, at.y_mm, s.z_above_surface(s.transit_mm), r, 1.0)
                 + self._hold(s.settle_rows))
-        self.phase, self.needs = _Phase.GRASPED, Need.GRASP
+        self.phase, self._needs = _Phase.GRASPED, Need.GRASP
         return rows
 
     def _place(self) -> list[Row]:
@@ -241,11 +289,11 @@ class PickLoop:
 
     def _finish(self, kind: str, note: str, rows: list[Row] | None = None) -> list[Row]:
         self.events.append(Event(kind, self.trial_id or 0, note=note))
-        self.phase, self.needs = _Phase.DONE, Need.NOTHING
+        self.phase, self._needs = _Phase.DONE, Need.NOTHING
         rows = rows or []
         try:
             rows += self._park()
         except OutsideWorkspace:
             pass
-        self.phase, self.needs = _Phase.DONE, Need.NOTHING
+        self.phase, self._needs = _Phase.DONE, Need.NOTHING
         return rows

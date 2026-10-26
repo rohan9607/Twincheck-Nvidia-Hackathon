@@ -36,6 +36,10 @@ class CellSpec:
     release_above_rim_mm: float
     bin_height_mm: float
     park: tuple[float, float, float]
+    arrive_tol_mm: float
+    arrive_tol_deg: float
+    arrive_timeout_rows: int
+    wait_chunk_rows: int
 
     @classmethod
     def from_config(cls, cfg: Config) -> "CellSpec":
@@ -47,7 +51,14 @@ class CellSpec:
                    float(c["finger_yaw_offset_deg"]), float(c["max_step_mm"]), float(c["max_step_deg"]),
                    int(c["settle_rows"]), int(c["grip_rows"]), float(c["hover_mm"]), float(c["transit_mm"]),
                    float(c["tip_clearance_mm"]), float(c["release_above_rim_mm"]), float(c["bin_height_mm"]),
-                   tuple(float(v) for v in c["park_tcp_mm"]))
+                   tuple(float(v) for v in c["park_tcp_mm"]), float(c["arrive_tol_mm"]),
+                   float(c["arrive_tol_deg"]), round(float(c["arrive_timeout_s"]) / float(c["step_s"])),
+                   int(c["wait_chunk_rows"]))
+
+    def arrived(self, tcp: list[float], goal: Row) -> bool:
+        """The measured fingertip pose (obs tcp_pose, UF0) is at the goal row's position and R."""
+        return (math.dist(tcp[:3], goal[:3]) <= self.arrive_tol_mm
+                and abs(wrap_deg(tcp[5] - goal[5])) <= self.arrive_tol_deg)
 
     @property
     def surface_z(self) -> float:

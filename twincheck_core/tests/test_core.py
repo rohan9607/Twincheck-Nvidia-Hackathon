@@ -329,6 +329,80 @@ def test_pickloop_skips_parts_that_do_not_fit():
     assert any(e.kind == "skip" and "jaws open to 12" in e.note for e in loop.drain_events())
 
 
+class _SlowArm:
+    """The real cell as the dry run recorded it (Oct 23): the fingertip heads straight for the LATEST row at
+    about 55 mm/s, and the gripper follows its command at once, wherever the arm is."""
+
+    def __init__(self, start, mm_per_row=5.5, floor_z=None):
+        self.pos, self.r, self.g, self.v, self.floor_z = list(start[:3]), start[5], 0.0, mm_per_row, floor_z
+
+    def play(self, rows):
+        log = []
+        for row in rows:
+            d = math.dist(self.pos, row[:3])
+            f = 1.0 if d <= self.v else self.v / d
+            self.pos = [p + (q - p) * f for p, q in zip(self.pos, row[:3])]
+            if self.floor_z is not None:                  # a part under the fingers
+                self.pos[2] = max(self.pos[2], self.floor_z)
+            self.r, self.g = row[5], row[6]
+            log.append((list(self.pos), self.g))
+        return log
+
+    def tcp(self):
+        return self.pos + [-180.0, 0.0, self.r]
+
+
+def test_pickloop_waits_for_the_slow_real_arm():
+    nominal = CFG.pick_points["slot_1"]
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal)])
+    arm = _SlowArm(SPEC.down(*SPEC.park, 0.0, 0.0))
+    grip = SPEC.z_above_surface(SPEC.tip_clearance_mm)
+    b = CFG.bins["bin_cubes"].center
+    closed_at, opened_at, looked_at = None, None, []
+    for _ in range(2000):
+        need = loop.needs
+        view = View(tcp=arm.tcp(), gripper=arm.g)
+        if need == Need.SCENE:
+            looked_at.append(list(arm.pos))
+            view.detections = [Detection("cube", b if loop.placed_id else nominal)]
+        elif need == Need.GRASP:
+            view.grasp = GraspState.HOLDING
+        before = arm.g
+        log = arm.play(_rows_ok(loop.step(view)))
+        for pos, g in log:
+            if g != before and closed_at is None and g == 1:
+                closed_at = pos
+            if g != before and g == 0 and closed_at is not None and opened_at is None:
+                opened_at = pos
+            before = g
+        if loop.done and not loop.needs:
+            break
+    assert loop.done
+    # the jaws close only at the grasp height over the part, not on the way down (11 cm up on Oct 23)
+    assert math.dist(closed_at, [nominal.x_mm, nominal.y_mm, grip]) <= SPEC.arrive_tol_mm
+    assert math.hypot(opened_at[0] - b.x_mm, opened_at[1] - b.y_mm) <= SPEC.arrive_tol_mm
+    # every camera look happens with the arm parked, out of the table camera's view
+    assert looked_at and all(math.dist(p, SPEC.park) <= SPEC.arrive_tol_mm for p in looked_at)
+    ev = loop.drain_events()
+    assert [e.decision.outcome.passed for e in ev if e.kind == "decision"] == [True, True, True]
+
+
+def test_pickloop_stops_when_the_arm_is_blocked():
+    nominal = CFG.pick_points["slot_1"]
+    loop = PickLoop(CFG, "watch", [Job("cube", nominal)])
+    arm = _SlowArm(SPEC.down(*SPEC.park, 0.0, 0.0), floor_z=SPEC.z_above_surface(10))   # fingers on the cube
+    for _ in range(2000):
+        view = View(tcp=arm.tcp(), gripper=arm.g)
+        if loop.needs == Need.SCENE:
+            view.detections = [Detection("cube", nominal)]
+        arm.play(_rows_ok(loop.step(view)))
+        if loop.done:
+            break
+    assert loop.done and arm.g == 0                        # never closed on top of the part
+    ev = loop.drain_events()
+    assert ev[-1].kind == "stop" and "did not reach" in ev[-1].note
+
+
 # ---------- stats ----------
 def test_wilson_matches_doc_table():
     lo, hi = wilson_interval(18, 20)

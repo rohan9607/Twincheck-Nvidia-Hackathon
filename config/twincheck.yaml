@@ -136,8 +136,15 @@ cell:
   step_s: 0.1                      # each returned row plays as one 0.1 s step
   max_step_mm: 15                  # per row: 150 mm/s
   max_step_deg: 10
-  settle_rows: 20                  # the real arm follows its targets about 0.8 s behind: hold this long
-                                   #   (8 closed the jaws in the air above the cube on the real cell, Oct 23)
+  settle_rows: 8                   # hold this long after arriving, so the arm is still for the cameras
+  # The real arm moves at most about 55 mm/s and heads straight for the LATEST target, so open-loop rows
+  # cut corners (diagonal descents onto the cube: 9 controller faults) and the jaws closed 11 cm above the
+  # cube (dry run Oct 23, LeRobotDataset r20261023-213a3c). Each leg now waits until the measured fingertip
+  # (obs tcp_pose) is at its goal before the next leg, the gripper, or a camera look.
+  arrive_tol_mm: 2.0
+  arrive_tol_deg: 3.0
+  arrive_timeout_s: 30             # not there by then (blocked, e.g. resting on a part): stop the rollout
+  wait_chunk_rows: 10              # rows per act() while waiting for arrival
   grip_rows: 5                     # rows to hold while the jaws close or open
   hover_mm: 50                     # fingertips above the surface before descending
   transit_mm: 110                  # fingertips above the surface when carrying (bins are 55 mm tall)

@@ -14,6 +14,8 @@ Environment:
   TWINCHECK_DSN      Postgres URL; trials and checks go to the database when set (as scripts/results.py reads)
   TWINCHECK_WRIST    reference_diff (default) | classifier | cosmos
   TWINCHECK_CONFIG   another config file
+  TWINCHECK_FRAMES   1 (default) saves every full-size frame the checks look at to runs/cell/<session>/
+                     (real images: test and analysis only, never training)
 """
 from __future__ import annotations
 
@@ -37,6 +39,10 @@ CELL = CFG.raw["cell"]
 MAX_CHUNK = 100   # rows per act() the cell accepts
 
 
+def _pose(d) -> list:
+    return [round(d.pose.x_mm, 1), round(d.pose.y_mm, 1), round(d.pose.yaw_deg, 1), round(d.confidence, 2)]
+
+
 class TrialLog:
     """One JSONL line per event (always), and trials/checks rows in Postgres (when TWINCHECK_DSN is set)."""
 
@@ -45,6 +51,8 @@ class TrialLog:
         out = REPO / "runs" / "cell"
         out.mkdir(parents=True, exist_ok=True)
         self.jsonl = out / f"{session}.jsonl"
+        self.frames = out / session if os.environ.get("TWINCHECK_FRAMES", "1") == "1" else None
+        self.looks = 0
         self.db, self.db_ids = None, {}
         dsn = os.environ.get("TWINCHECK_DSN")
         if dsn:
@@ -65,8 +73,9 @@ class TrialLog:
             o = d.outcome
             rec |= {"check": o.check_point.value, "passed": o.passed, "reason": o.reason, "action": d.action.value,
                     "urgent": d.urgent, "pos_err_mm": o.position_error_mm, "yaw_err_deg": o.yaw_error_deg}
-        with open(self.jsonl, "a") as f:
-            f.write(json.dumps(rec) + "\n")
+            if o.observed is not None:
+                rec["seen"] = _pose(o.observed)
+        self._append(rec)
         level = logging.WARNING if (d and not d.outcome.passed) or ev.kind in ("stop", "skip") else logging.INFO
         log.log(level, "trial %s %s %s", ev.trial_id, ev.kind, rec.get("reason") or ev.note)
         if self.db is not None:
@@ -74,6 +83,31 @@ class TrialLog:
                 self._db(rollout, ev)
             except Exception as e:  # noqa: BLE001
                 log.warning("trial database write failed: %s", e)
+
+    def _append(self, rec: dict) -> None:
+        with open(self.jsonl, "a") as f:
+            f.write(json.dumps(rec) + "\n")
+
+    def look(self, rollout: dict, camera: str, image, tcp, result) -> None:
+        """One line per camera look: what was seen, where the arm was, and the saved frame."""
+        self.looks += 1
+        rec = {"t": dt.datetime.now().isoformat(timespec="milliseconds"), "session": self.session,
+               "rollout": rollout.get("trial_id"), "kind": "look", "camera": camera,
+               "tcp": [round(v, 1) for v in tcp[:6]] if tcp else None}
+        if camera == "table":
+            rec["detections"] = [[d.cls, *_pose(d)] for d in result]
+        else:
+            rec["grasp"] = getattr(result, "value", str(result))
+        if self.frames and image is not None:
+            try:
+                import cv2
+                self.frames.mkdir(parents=True, exist_ok=True)
+                name = f"{rollout.get('trial_id') or 'r'}_{self.looks:04d}_{camera}.jpg"
+                cv2.imwrite(str(self.frames / name), image[:, :, ::-1] if image.ndim == 3 else image)
+                rec["frame"] = name
+            except Exception as e:  # noqa: BLE001  a full disk must not stop the arm
+                log.warning("frame not saved: %s", e)
+        self._append(rec)
 
     def _db(self, rollout: dict, ev) -> None:
         if ev.kind == "trial":
@@ -156,8 +190,10 @@ class Policy:
             view = View(tcp=obs.get("tcp_pose"), gripper=float(obs["joints"][6]))
             if self.loop.needs == Need.SCENE:
                 view.detections = self.table.detect(obs["images"]["table"]) if self.table else []
-            elif self.loop.needs == Need.GRASP and self.wrist:
-                view.grasp = self.wrist.check(obs["images"]["wrist"])
+                self.trials.look(self.rollout, "table", obs["images"].get("table"), view.tcp, view.detections)
+            elif self.loop.needs == Need.GRASP:          # look even without a wrist check: keep the frame
+                view.grasp = self.wrist.check(obs["images"]["wrist"]) if self.wrist else None
+                self.trials.look(self.rollout, "wrist", obs["images"].get("wrist"), view.tcp, view.grasp)
             self.pending = self.loop.step(view)
             for ev in self.loop.drain_events():
                 self.trials.write(self.rollout, ev)
