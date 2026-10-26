@@ -8,7 +8,7 @@ from twincheck_core import (Action, Comparator, Detection, GraspState, Mode, Pos
                             check_post_place, check_pre_pick, fuse_poses, load_config, pick_threshold, plan_grasp,
                             plan_resync, threshold_sweep, wilson_interval, yaw_diff_deg)
 from twincheck_core.cell import CellSpec, OutsideWorkspace, check_row, interpolate
-from twincheck_core.checks import CheckPoint
+from twincheck_core.checks import CheckPoint, grasp_from_table
 from twincheck_core.pickloop import Job, Need, PickLoop, View
 
 CFG = load_config(Path(__file__).resolve().parents[2] / "config" / "twincheck.yaml")
@@ -261,7 +261,7 @@ def _rows_ok(rows):
 def test_pickloop_guide_aims_at_seen_part_and_places_it():
     nominal = CFG.pick_points["slot_1"]
     seen = Pose2D(nominal.x_mm + 30, nominal.y_mm - 20, 20)       # nudged: a blind program would miss it
-    loop = PickLoop(CFG, "guide", [Job("cube", nominal)])
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal)], grasp_by="wrist")
     _rows_ok(loop.step(View(tcp=None)))                            # mock: no tcp yet -> start from park
     assert loop.needs == Need.SCENE
     rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", seen)])))
@@ -282,7 +282,7 @@ def test_pickloop_guide_aims_at_seen_part_and_places_it():
 
 def test_pickloop_watch_stays_blind_and_alerts():
     nominal = CFG.pick_points["slot_1"]
-    loop = PickLoop(CFG, "watch", [Job("cube", nominal)])
+    loop = PickLoop(CFG, "watch", [Job("cube", nominal)], grasp_by="wrist")
     loop.step(View(tcp=None))
     rows = loop.step(View(tcp=None, detections=[Detection("cube", Pose2D(nominal.x_mm + 30, nominal.y_mm))]))
     low = min(rows, key=lambda r: r[2])
@@ -293,7 +293,7 @@ def test_pickloop_watch_stays_blind_and_alerts():
 
 def test_pickloop_guide_retries_empty_grasp_once_then_stops():
     nominal = CFG.pick_points["slot_2"]
-    loop = PickLoop(CFG, "guide", [Job("cube", nominal), Job("cube", nominal)])
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal), Job("cube", nominal)], grasp_by="wrist")
     scene = [Detection("cube", nominal)]
     loop.step(View(tcp=None))
     loop.step(View(tcp=None, detections=scene))
@@ -313,7 +313,7 @@ def test_pickloop_guide_retries_empty_grasp_once_then_stops():
 
 
 def test_pickloop_refuses_unreachable_target_and_holds():
-    loop = PickLoop(CFG, "baseline", [Job("cube", Pose2D(600, 300))])   # 671 mm from the base axis
+    loop = PickLoop(CFG, "baseline", [Job("cube", Pose2D(600, 300))], grasp_by="wrist")   # 671 mm from the base axis
     loop.step(View(tcp=None))
     rows = _rows_ok(loop.step(View(tcp=None, detections=[])))
     assert loop.done and "outside our workspace" in loop.drain_events()[-1].note
@@ -321,7 +321,7 @@ def test_pickloop_refuses_unreachable_target_and_holds():
 
 
 def test_pickloop_skips_parts_that_do_not_fit():
-    loop = PickLoop(CFG, "guide", [Job("vial", CFG.pick_points["slot_1"]), Job("cube", CFG.pick_points["slot_2"])])
+    loop = PickLoop(CFG, "guide", [Job("vial", CFG.pick_points["slot_1"]), Job("cube", CFG.pick_points["slot_2"])], grasp_by="wrist")
     loop.step(View(tcp=None))
     dets = [Detection("vial", CFG.pick_points["slot_1"]), Detection("cube", CFG.pick_points["slot_2"])]
     loop.step(View(tcp=None, detections=dets))
@@ -352,9 +352,10 @@ class _SlowArm:
         return self.pos + [-180.0, 0.0, self.r]
 
 
-def test_pickloop_waits_for_the_slow_real_arm():
+@pytest.mark.parametrize("grasp_by", ["wrist", "table"])
+def test_pickloop_waits_for_the_slow_real_arm(grasp_by):
     nominal = CFG.pick_points["slot_1"]
-    loop = PickLoop(CFG, "guide", [Job("cube", nominal)])
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal)], grasp_by=grasp_by)
     arm = _SlowArm(SPEC.down(*SPEC.park, 0.0, 0.0))
     grip = SPEC.z_above_surface(SPEC.tip_clearance_mm)
     b = CFG.bins["bin_cubes"].center
@@ -364,7 +365,8 @@ def test_pickloop_waits_for_the_slow_real_arm():
         view = View(tcp=arm.tcp(), gripper=arm.g)
         if need == Need.SCENE:
             looked_at.append(list(arm.pos))
-            view.detections = [Detection("cube", b if loop.placed_id else nominal)]
+            held = loop.phase.value == "grasped"                    # table grasp check: the cube is gone
+            view.detections = [] if held else [Detection("cube", b if loop.placed_id else nominal)]
         elif need == Need.GRASP:
             view.grasp = GraspState.HOLDING
         before = arm.g
@@ -389,7 +391,7 @@ def test_pickloop_waits_for_the_slow_real_arm():
 
 def test_pickloop_stops_when_the_arm_is_blocked():
     nominal = CFG.pick_points["slot_1"]
-    loop = PickLoop(CFG, "watch", [Job("cube", nominal)])
+    loop = PickLoop(CFG, "watch", [Job("cube", nominal)], grasp_by="wrist")
     arm = _SlowArm(SPEC.down(*SPEC.park, 0.0, 0.0), floor_z=SPEC.z_above_surface(10))   # fingers on the cube
     for _ in range(2000):
         view = View(tcp=arm.tcp(), gripper=arm.g)
@@ -401,6 +403,48 @@ def test_pickloop_stops_when_the_arm_is_blocked():
     assert loop.done and arm.g == 0                        # never closed on top of the part
     ev = loop.drain_events()
     assert ev[-1].kind == "stop" and "did not reach" in ev[-1].note
+
+
+def test_grasp_from_table_part_still_there_is_empty():
+    at = Pose2D(380, -100)
+    th = CFG.thresholds
+    assert grasp_from_table(at, "cube", [Detection("cube", Pose2D(381, -99))], th) == GraspState.EMPTY
+    assert grasp_from_table(at, "cube", [Detection("cube", Pose2D(400, -100))], th) == GraspState.EMPTY  # knocked
+    assert grasp_from_table(at, "cube", [Detection("screw", at), Detection("cube", Pose2D(380, 100))],
+                            th) == GraspState.HOLDING          # other parts elsewhere don't count
+    assert grasp_from_table(at, "cube", [], th) == GraspState.HOLDING
+
+
+def test_pickloop_table_grasp_check_parks_looks_and_places():
+    nominal = CFG.pick_points["slot_1"]
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal)], grasp_by="table")
+    loop.step(View(tcp=None))
+    rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", nominal)])))
+    assert loop.needs == Need.SCENE                                 # not the wrist: the table camera
+    assert rows[-1][:3] == list(SPEC.park)                          # looked from the park pose
+    rows = _rows_ok(loop.step(View(tcp=None, detections=[])))       # the cube left the table: held
+    b = CFG.bins["bin_cubes"].center
+    opened = next(r for r in rows if r[6] == 0)
+    assert math.hypot(opened[0] - b.x_mm, opened[1] - b.y_mm) < 1e-6
+    loop.step(View(tcp=None, detections=[Detection("cube", b)]))
+    ev = loop.drain_events()
+    assert loop.done and [e.decision.outcome.passed for e in ev if e.kind == "decision"] == [True, True, True]
+
+
+def test_pickloop_table_grasp_check_retries_from_the_same_scene():
+    nominal = CFG.pick_points["slot_1"]
+    moved = Pose2D(nominal.x_mm + 4, nominal.y_mm - 3, 10)          # nudged by the failed grasp
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal)], grasp_by="table")
+    loop.step(View(tcp=None))
+    loop.step(View(tcp=None, detections=[Detection("cube", nominal)]))
+    rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", moved)])))   # still on the table
+    assert rows[0][6] == 0 and rows[0][:3] == list(SPEC.park)       # opens where it is: nothing is held
+    low = min(rows, key=lambda r: r[2])                             # and goes straight back for it
+    assert (low[0], low[1]) == (moved.x_mm, moved.y_mm) and loop.needs == Need.SCENE
+    rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", moved)])))   # missed again
+    ev = loop.drain_events()
+    assert loop.done and ev[-1].kind == "stop" and all(r[2] > SPEC.z_above_surface(50) for r in rows)
+    assert [e.kind for e in ev].count("trial") == 1
 
 
 # ---------- stats ----------

@@ -91,7 +91,8 @@ waypoints:
   place_done: {}    # e.g. bin_rework: [..]                    TODO
 
 thresholds:
-  pre_pick_mm: 10.0
+  pre_pick_mm: 3.0                 # the hooked tips open 16 mm around a 10 mm cube: 3 mm a side (dry run Oct 23:
+                                   #   cubes 5-14 mm off the taught point were hit, not grasped)
   pre_pick_deg: 10.0
   post_place_mm: 15.0
   match_radius_mm: 60.0
@@ -153,6 +154,8 @@ cell:
   bin_height_mm: 55
   park_tcp_mm: [170, -330, -60]    # UF0 x, y, z: arm out of the table camera's view for scans  TODO check
   max_picks_per_rollout: 6
+  grasp_check: table               # post-grasp: table (park, look where the part was: proven detector) |
+                                   #   wrist (needs a wrist method that works on the real camera)
   image_size: [1920, 1080]         # full frame: a 10 mm cube is only about 3 px wide at 640 x 360
   image_format: jpeg
   sequence:                        # what each rollout picks, in order (same order in placement.yaml)

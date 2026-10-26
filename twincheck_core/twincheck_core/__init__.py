@@ -1,6 +1,7 @@
 """TwinCheck core: pure-Python check logic shared by ROS 2 nodes, the twin and analysis."""
 from .cell import CellSpec, OutsideWorkspace, check_row, interpolate
-from .checks import CheckOutcome, CheckPoint, Detection, GraspState, check_post_grasp, check_post_place, check_pre_pick
+from .checks import (CheckOutcome, CheckPoint, Detection, GraspState, check_post_grasp, check_post_place,
+                     check_pre_pick, grasp_from_table)
 from .comparator import Action, Comparator, Decision, Mode
 from .config import BinSpec, Config, ObjectSpec, Thresholds, load_config
 from .geometry import Pose2D, apply_homography, fuse_poses, yaw_diff_deg
@@ -27,6 +28,7 @@ __all__ = [
     "check_post_grasp",
     "check_post_place",
     "check_pre_pick",
+    "grasp_from_table",
     "Action",
     "Comparator",
     "Decision",

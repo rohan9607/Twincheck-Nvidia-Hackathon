@@ -90,6 +90,16 @@ def check_post_grasp(observed: GraspState, expected: GraspState = GraspState.HOL
     return CheckOutcome(CheckPoint.POST_GRASP, False, reasons.get(observed, f"grasp state {observed.value}"))
 
 
+def grasp_from_table(picked_at: Pose2D, cls: str, detections: list[Detection], th: Thresholds) -> GraspState:
+    """Grasp state from the table camera, with the arm parked after lifting (the stand-in until a wrist check
+    is proven). A part of this class still near where we grasped means the jaws came up empty, whether it
+    stayed put or was knocked a little; none there means it is in the jaws. A detector miss reads as held,
+    so the post-place check is the backstop for that."""
+    if nearest_detection(picked_at, detections, cls, th.match_radius_mm, th.min_confidence) is not None:
+        return GraspState.EMPTY
+    return GraspState.HOLDING
+
+
 def newest(now: list[Detection], before: list[Detection]) -> Detection:
     """The detection least explained by the earlier scene: farthest from any old part of its class."""
     def gap(d: Detection) -> float:

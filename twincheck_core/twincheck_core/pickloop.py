@@ -5,8 +5,11 @@ needs to look (the table camera before a pick and after a place, the wrist camer
 the arm, returns those rows, and sets `needs`. The policy then fills that part of the next view.
 
     SCAN (park, table camera) -> pre-pick check -> PICK (hover, descend, close, lift)
-      -> wrist camera: post-grasp check -> PLACE (carry high, release over the bin)
+      -> post-grasp check -> PLACE (carry high, release over the bin)
       -> SCAN: post-place check, and the same scene is the next job's pre-pick scene
+
+The post-grasp check (config cell.grasp_check) looks with the wrist camera ("wrist"), or parks and looks
+with the table camera for the part where it was ("table"); a table retry re-aims from that same scene.
 
 Every leg ends at an arrival gate: with feedback (view.tcp), the next leg, a gripper change and a camera
 look wait until the measured fingertip is at the leg's goal. The real arm moves at about 55 mm/s and heads
@@ -25,7 +28,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from .cell import CellSpec, OutsideWorkspace, Row, check_row, interpolate
-from .checks import Detection, GraspState
+from .checks import Detection, GraspState, grasp_from_table
 from .comparator import Action, Comparator, Decision, Mode
 from .config import Config
 from .geometry import Pose2D
@@ -83,10 +86,15 @@ class PickLoop:
     jobs: list[Job]
     first_trial_id: int = 1
     max_picks: int = 6
+    grasp_by: str | None = None     # wrist | table; None = config cell.grasp_check
     events: list[Event] = field(default_factory=list)
 
     def __post_init__(self):
         self.spec = CellSpec.from_config(self.cfg)
+        self.grasp_by = self.grasp_by or self.cfg.raw["cell"].get("grasp_check", "wrist")
+        if self.grasp_by not in ("wrist", "table"):
+            raise ValueError(f"cell.grasp_check must be wrist or table, not {self.grasp_by!r}")
+        self._grasp_at: Pose2D | None = None
         # baseline runs the checks like watch; only what we do with a failure differs
         self.comparator = Comparator(self.cfg, Mode.GUIDE if self.mode == "guide" else Mode.WATCH)
         self.phase = _Phase.START
@@ -170,12 +178,21 @@ class PickLoop:
                     return self._finish("stop", "post-place failed")
             return self._pre_pick(dets)
         if self.phase == _Phase.GRASPED:
-            d = self.comparator.on_grasp_closed(view.grasp or GraspState.UNKNOWN, trial_id=self.trial_id)
+            table = self.grasp_by == "table"
+            if table:
+                cls = self.comparator.trials[self.trial_id].cls
+                state = grasp_from_table(self._grasp_at, cls, view.detections or [], self.cfg.thresholds)
+            else:
+                state = view.grasp or GraspState.UNKNOWN
+            d = self.comparator.on_grasp_closed(state, trial_id=self.trial_id)
             self._log(d, self.trial_id)
-            if d.action == Action.RETRY:          # guide: drop whatever is held, look again, same trial
-                return self._release_here() + self._park()
+            # the table camera saw the part still on the table, so nothing is held: open where we are.
+            # From the wrist alone we can't be sure, so set it down where it was picked first.
+            release = self._open_here() if table else self._release_here()
+            if d.action == Action.RETRY:          # guide: look again (table: this scene), same trial
+                return release + (self._pre_pick(view.detections or []) if table else self._park())
             if d.action == Action.STOP:
-                return self._finish("stop", "grasp failed with no retries left", self._release_here())
+                return self._finish("stop", "grasp failed with no retries left", release)
             return self._place()
         return []
 
@@ -240,12 +257,19 @@ class PickLoop:
             return []
         return self._go(self.last[0], self.last[1], z, self.last[5], self.last[6])
 
-    def _park(self) -> list[Row]:
+    def _to_park(self) -> list:
         s = self.spec
         x, y, z = s.park
-        rows = self._up_to(s.z_above_surface(s.transit_mm)) + self._go(x, y, z, 0.0, self.last[6])
+        return (self._up_to(s.z_above_surface(s.transit_mm)) + self._go(x, y, z, 0.0, self.last[6])
+                + self._hold(s.settle_rows))
+
+    def _park(self) -> list:
+        rows = self._to_park()
         self.phase, self._needs = _Phase.SCAN, Need.SCENE
-        return rows + self._hold(s.settle_rows)
+        return rows
+
+    def _open_here(self) -> list:
+        return self._hold(self.spec.grip_rows, 0.0)
 
     def _pick(self, at: Pose2D) -> list[Row]:
         s = self.spec
@@ -259,7 +283,12 @@ class PickLoop:
                 + self._hold(s.grip_rows, 1.0)
                 + self._go(at.x_mm, at.y_mm, s.z_above_surface(s.transit_mm), r, 1.0)
                 + self._hold(s.settle_rows))
-        self.phase, self._needs = _Phase.GRASPED, Need.GRASP
+        self._grasp_at = at
+        if self.grasp_by == "table":              # park out of the table camera's view and look
+            rows += self._to_park()
+            self.phase, self._needs = _Phase.GRASPED, Need.SCENE
+        else:
+            self.phase, self._needs = _Phase.GRASPED, Need.GRASP
         return rows
 
     def _place(self) -> list[Row]:
