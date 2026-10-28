@@ -165,5 +165,6 @@ cell:
   image_format: jpeg
   sequence:                        # what each rollout picks, in order (same order in placement.yaml)
     - {cls: cube, pick_point: slot_1}
-    - {cls: screw, pick_point: slot_2}
+    - {cls: cube, pick_point: slot_2}     # screws return once finger_yaw_offset_deg is measured: a wrong
+                                          #   guess lands the fingers on the screw (controller fault)
     - {cls: cube, pick_point: slot_3}

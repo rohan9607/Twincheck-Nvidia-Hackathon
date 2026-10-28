@@ -495,15 +495,17 @@ def test_placement_gives_screw_head_and_only_used_bins():
     import random
     import sys
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "cell_policy"))
+    from dataclasses import replace
     from make_placement import layout
-    centres, _ = layout(CFG, None, 0)
-    heads, _ = layout(CFG, None, 0, heads=True)
+    seq = [{"cls": "cube", "pick_point": "slot_1"}, {"cls": "screw", "pick_point": "slot_2"}]
+    cfg = replace(CFG, raw={**CFG.raw, "cell": {**CFG.raw["cell"], "sequence": seq}})
+    centres, _ = layout(cfg, None, 0)
+    heads, _ = layout(cfg, None, 0, heads=True)
     (cx, cy, yaw), (hx, hy, _) = centres["screw"][0], heads["screw"][0]
     half = CFG.objects["screw"].length_mm / 2
     assert (hx, hy) == (round(cx - half * math.cos(math.radians(yaw))), round(cy - half * math.sin(math.radians(yaw))))
     assert heads["cube"] == centres["cube"]                      # only screws have a head
-    used = {CFG.objects[j["cls"]].target_bin for j in CFG.raw["cell"]["sequence"]}
-    assert len(heads["bin"]) == len(used)
-    nudged, _ = layout(CFG, random.Random(3), 30, heads=True)    # nudged screws: head half a length behind
+    assert len(heads["bin"]) == 2                                 # cubes and screws: only the bins we use
+    nudged, _ = layout(cfg, random.Random(3), 30, heads=True)    # nudged screws: head half a length behind
     sx, sy, syaw = nudged["screw"][0]
     assert abs(math.hypot(sx - cx, sy - cy)) <= 30 + half + 1
