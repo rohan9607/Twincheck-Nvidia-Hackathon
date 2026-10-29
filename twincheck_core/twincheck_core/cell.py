@@ -36,6 +36,7 @@ class CellSpec:
     release_above_rim_mm: float
     bin_height_mm: float
     park: tuple[float, float, float]
+    preferred_r_deg: float | None
     arrive_tol_mm: float
     arrive_tol_deg: float
     arrive_timeout_rows: int
@@ -51,7 +52,8 @@ class CellSpec:
                    float(c["finger_yaw_offset_deg"]), float(c["max_step_mm"]), float(c["max_step_deg"]),
                    int(c["settle_rows"]), int(c["grip_rows"]), float(c["hover_mm"]), float(c["transit_mm"]),
                    float(c["tip_clearance_mm"]), float(c["release_above_rim_mm"]), float(c["bin_height_mm"]),
-                   tuple(float(v) for v in c["park_tcp_mm"]), float(c["arrive_tol_mm"]),
+                   tuple(float(v) for v in c["park_tcp_mm"]),
+                   None if c.get("preferred_r_deg") is None else float(c["preferred_r_deg"]), float(c["arrive_tol_mm"]),
                    float(c["arrive_tol_deg"]), round(float(c["arrive_timeout_s"]) / float(c["step_s"])),
                    int(c["wait_chunk_rows"]))
 
@@ -71,6 +73,15 @@ class CellSpec:
     def r_for_close_yaw(self, close_yaw_deg: float) -> float:
         """Tool R that makes the fingers close along close_yaw (table frame)."""
         return wrap_deg(close_yaw_deg - self.finger_yaw_offset_deg)
+
+    def r_near_preferred(self, r: float, symmetry_deg: float) -> float:
+        """Of the tool R values that grasp the same part (r plus whole turns of its symmetry), the one closest
+        to preferred_r_deg. On the real cell all 3 controller faults of Oct 28 came at R 95-99, with the air hoses
+        hanging beside the fingers; all 17 good grasps were at R 107-179."""
+        if self.preferred_r_deg is None or not symmetry_deg:
+            return r
+        k = round(wrap_deg(self.preferred_r_deg - r) / symmetry_deg)
+        return wrap_deg(r + k * symmetry_deg)
 
     def down(self, x: float, y: float, z: float, r: float, gripper: float) -> Row:
         return [x, y, z, self.w_deg, self.p_deg, r, gripper]

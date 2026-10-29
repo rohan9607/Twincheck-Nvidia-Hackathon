@@ -129,7 +129,8 @@ def newest(now: list[Detection], before: list[Detection]) -> Detection:
 def check_post_place(cls: str, target_bin: BinSpec, detections: list[Detection], th: Thresholds,
                      all_bins: dict[str, BinSpec] | None = None,
                      pick_point: Pose2D | None = None,
-                     before: list[Detection] | None = None) -> CheckOutcome:
+                     before: list[Detection] | None = None,
+                     held_over_bin: bool = False) -> CheckOutcome:
     """Did the object land in the right bin?
 
     Looks for a `cls` that arrived in the target bin. If none, says where it went:
@@ -144,6 +145,12 @@ def check_post_place(cls: str, target_bin: BinSpec, detections: list[Detection],
 
     In the target bin a new part of any class counts too: we know what we carried, and a part half hidden
     in a pocket is often seen as the other class (a screw leaning in its bin read as cubes in the twin).
+
+    Several parts in one 35 mm pocket stack and hide each other, so the count may not rise. held_over_bin:
+    the grasp check saw the part off the table with the arm already above the target bin, and the release was
+    a few cm straight down from there; a part dropped on that short way lands in the bin or beside it, in view.
+    Then, with `before`, one fewer `cls` loose on the table (outside every bin) means it is in the bin. Without
+    that evidence a part that vanished fails (lost), as missed failures cost more than false alarms.
     """
     old = before or []
 
@@ -175,6 +182,18 @@ def check_post_place(cls: str, target_bin: BinSpec, detections: list[Detection],
             return CheckOutcome(CheckPoint.POST_PLACE, False,
                                 f"{cls} in the wrong bin ({other.name}, expected {target_bin.name})",
                                 newest(wrong, old).pose.distance_to(target_bin.center), None, newest(wrong, old))
+
+    if before is not None and held_over_bin:
+        bins = list((all_bins or {target_bin.name: target_bin}).values())
+
+        def loose(ds: list[Detection]) -> int:
+            return sum(d.cls == cls and d.confidence >= th.min_confidence and not any(b.contains(d.pose) for b in bins)
+                       for d in ds)
+        stayed = pick_point is not None and nearest_detection(pick_point, detections, cls, th.match_radius_mm,
+                                                              th.min_confidence) is not None
+        if loose(detections) < loose(old) and not stayed:
+            return CheckOutcome(CheckPoint.POST_PLACE, True, f"{cls} left the table and is not on it: in {target_bin.name}, "
+                                                  "hidden by the parts already there")
 
     if pick_point is not None:   # full scene: a part that never moved is "old" by definition
         left = nearest_detection(pick_point, detections, cls, th.match_radius_mm, th.min_confidence)

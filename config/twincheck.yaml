@@ -132,6 +132,8 @@ cell:
   reach_margin_mm: 40
   tcp_box_mm: {x: [150, 650], y: [-450, 450], z: [-334, 300]}   # the cell rejects rows outside (mock_cell.py)
   fingers_down_wp_deg: [-180, 0]   # w, p for fingers straight down; r turns them about z
+  preferred_r_deg: 150             # grasp at the equivalent R closest to this (Oct 28: faults at R 95-99, the air
+                                   #   hoses beside the fingers; good grasps at R 107-179). null: no preference
   finger_yaw_offset_deg: 0         # TODO verify in the twin: r at which the fingers close along base +x
                                    #   (cubes are 90-degree symmetric, so only screws depend on it)
   step_s: 0.1                      # each returned row plays as one 0.1 s step

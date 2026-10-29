@@ -103,11 +103,13 @@ class Comparator:
             self.bins = locate_bins(self.bins, detections, self.bin_search_mm, self.cfg.thresholds.min_confidence)
         return self.bins
 
-    def on_place_done(self, detections: list[Detection], trial_id: int | None = None) -> Decision:
+    def on_place_done(self, detections: list[Detection], trial_id: int | None = None,
+                      held_over_bin: bool = False) -> Decision:
+        """held_over_bin: the grasp was confirmed with the arm above the target bin (check_post_place)."""
         t = self._require_trial(trial_id)
         self.locate_bins(detections)
         out = check_post_place(t.cls, self.bins[t.target_bin], detections, self.cfg.thresholds,
-                               self.bins, t.pick_point, t.before)
+                               self.bins, t.pick_point, t.before, held_over_bin)
         return self._decide(out, t)
 
     def _decide(self, out: CheckOutcome, t: TrialState) -> Decision:

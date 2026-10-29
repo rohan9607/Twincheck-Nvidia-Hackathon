@@ -93,6 +93,8 @@ def main():
     ap.add_argument("--model", default=None, help="table detector (default: config models.detector)")
     ap.add_argument("--client", default="/workspace/client", help="organizers' client package (calibration/)")
     ap.add_argument("--session", default=None, help="trial database tag (default twin_cell_<mode>)")
+    ap.add_argument("--bin-nudge-mm", type=float, default=0.0,
+                    help="move each bin up to this far from its planned spot per rollout (a hand-placed bin)")
     ap.add_argument("--lag-rows", type=int, default=0, help="arm follows targets this many rows late (real: ~8)")
     ap.add_argument("--max-rows", type=int, default=1500, help="rows per rollout before the operator stops it")
     ap.add_argument("--hold-rows", type=int, default=20, help="end the rollout after the policy is done this long")
@@ -128,7 +130,7 @@ def main():
         from isaacsim.core.utils.types import ArticulationAction
         from pxr import Usd, UsdGeom, UsdPhysics
 
-        from twin_common import part_pose_mm, place_part, scene_copies
+        from twin_common import duplicate_prim, part_pose_mm, place_part, scene_copies
 
         sys.path.insert(0, args.starter)
         import cell as starter_cell
@@ -158,8 +160,9 @@ def main():
         used = {cls: 0 for cls in pool}
         for job in jobs:
             cls = job["cls"]
-            if used[cls] >= len(pool[cls]):
-                raise SystemExit(f"the scene has {len(pool[cls])} {cls}(s); the sequence needs more")
+            if used[cls] >= len(pool[cls]):        # the saved scene has fewer: copy one (as the generator does)
+                src = scfg["objects"][cls]
+                pool[cls].append(str(duplicate_prim(stage, src, f"{src}_copy{len(pool[cls])}").GetPath()))
             parts.append((cls, pool[cls][used[cls]]))
             used[cls] += 1
         for cls, paths in pool.items():  # copies the sequence doesn't use go far away
@@ -247,10 +250,29 @@ def main():
                 rgb = cv2.cvtColor(cv2.imdecode(buf, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
             return rgb
 
+        bin_now = {n: (b["center"]["x_mm"], b["center"]["y_mm"]) for n, b in cfg_raw["bins"].items()}
+
+        def move_bins(rng_bins):
+            """Each bin (mesh and its collider) up to --bin-nudge-mm off its planned spot, like a hand-placed one."""
+            from pxr import Gf, UsdGeom
+            from twin_common import meters_per_unit, set_pose_mm
+            mpu = meters_per_unit(stage)
+            for n, b in cfg_raw["bins"].items():
+                r, a = args.bin_nudge_mm * math.sqrt(rng_bins.random()), rng_bins.uniform(0, 2 * math.pi)
+                dx, dy = r * math.cos(a), r * math.sin(a)
+                bin_now[n] = (b["center"]["x_mm"] + dx, b["center"]["y_mm"] + dy)
+                set_pose_mm(stage, f"/World/Bin_{n}", *bin_now[n], surface_mm, 0.0)
+                col = UsdGeom.Xformable(stage.GetPrimAtPath(f"/World/Bin_{n}Collider"))
+                op = next((o for o in col.GetOrderedXformOps() if o.GetOpType() == UsdGeom.XformOp.TypeTranslate),
+                          None) or col.AddTranslateOp()
+                op.Set(Gf.Vec3d(dx / 1000 / mpu, dy / 1000 / mpu, 0.0))
+            return {n: [round(v, 1) for v in xy] for n, xy in bin_now.items()}
+
         def in_bin(s, bin_name):
             b = cfg_raw["bins"][bin_name]
-            return (abs(s["x_mm"] - b["center"]["x_mm"]) <= b["half_x_mm"]
-                    and abs(s["y_mm"] - b["center"]["y_mm"]) <= b["half_y_mm"]
+            cx, cy = bin_now[bin_name]
+            return (abs(s["x_mm"] - cx) <= b["half_x_mm"]
+                    and abs(s["y_mm"] - cy) <= b["half_y_mm"]
                     and s["z_above_surface_mm"] < cell["bin_height_mm"])
 
         def bin_of(s):
@@ -272,11 +294,14 @@ def main():
 
             policy.wrist = Oracle()
         rng = random.Random(args.seed)
+        rng_bins = random.Random(args.seed + 1000)
         summary = []
         for k in range(1, args.rollouts + 1):
             objects, notes = layout(cfg, rng if args.nudge_mm else None, args.nudge_mm)
             # ---- reset: parts on their layout, arm home, jaws open
             set_kinematic(True)
+            if args.bin_nudge_mm:
+                notes.append(f"bins at {move_bins(rng_bins)}")
             idx_cls = {cls: 0 for cls in pool}
             for cls, p in parts:
                 x, y, yaw = objects[cls][idx_cls[cls]]

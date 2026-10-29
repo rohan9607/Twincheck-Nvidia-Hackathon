@@ -182,7 +182,9 @@ class PickLoop:
             dets = view.detections or []
             self.comparator.locate_bins(dets)
             if self.placed_id is not None:
-                self._log(self.comparator.on_place_done(dets, trial_id=self.placed_id), self.placed_id)
+                held_over_bin = self.grasp_by == "table" and self.grasp_look == "bin"
+                self._log(self.comparator.on_place_done(dets, trial_id=self.placed_id, held_over_bin=held_over_bin),
+                          self.placed_id)
                 last = self.events[-1].decision
                 self.placed_id = None
                 if last.action == Action.STOP:
@@ -284,7 +286,8 @@ class PickLoop:
 
     def _pick(self, at: Pose2D) -> list[Row]:
         s = self.spec
-        r = s.r_for_close_yaw(at.yaw_deg)
+        sym = self.cfg.objects[self.comparator.trials[self.trial_id].cls].symmetry_deg
+        r = s.r_near_preferred(s.r_for_close_yaw(at.yaw_deg), sym)
         hover, grip = s.z_above_surface(s.hover_mm), s.z_above_surface(s.tip_clearance_mm)
         rows = (self._up_to(s.z_above_surface(s.transit_mm))
                 + self._go(at.x_mm, at.y_mm, s.z_above_surface(s.transit_mm), r, 0.0)
