@@ -9,6 +9,7 @@ from twincheck_core import (Action, Comparator, Detection, GraspState, Mode, Pos
                             plan_resync, threshold_sweep, wilson_interval, yaw_diff_deg)
 from twincheck_core.cell import CellSpec, OutsideWorkspace, check_row, interpolate
 from twincheck_core.checks import CheckPoint, grasp_from_table
+from twincheck_core.config import BinSpec
 from twincheck_core.pickloop import Job, Need, PickLoop, View
 
 CFG = load_config(Path(__file__).resolve().parents[2] / "config" / "twincheck.yaml")
@@ -404,7 +405,9 @@ def test_pickloop_waits_for_the_slow_real_arm(grasp_by):
     assert math.dist(closed_at, [nominal.x_mm, nominal.y_mm, grip]) <= SPEC.arrive_tol_mm
     assert math.hypot(opened_at[0] - b.x_mm, opened_at[1] - b.y_mm) <= SPEC.arrive_tol_mm
     # every camera look happens with the arm parked, out of the table camera's view
-    assert looked_at and all(math.dist(p, SPEC.park) <= SPEC.arrive_tol_mm for p in looked_at)
+    over_bin = [b.x_mm, b.y_mm, SPEC.z_above_surface(SPEC.transit_mm)]
+    assert looked_at and all(min(math.dist(p, SPEC.park), math.dist(p, over_bin)) <= SPEC.arrive_tol_mm
+                             for p in looked_at)
     ev = loop.drain_events()
     assert [e.decision.outcome.passed for e in ev if e.kind == "decision"] == [True, True, True]
 
@@ -435,15 +438,17 @@ def test_grasp_from_table_part_still_there_is_empty():
     assert grasp_from_table(at, "cube", [], th) == GraspState.HOLDING
 
 
-def test_pickloop_table_grasp_check_parks_looks_and_places():
+def test_pickloop_table_grasp_check_looks_from_above_the_bin_and_places():
     nominal = CFG.pick_points["slot_1"]
+    b = CFG.bins["bin_cubes"].center
     loop = PickLoop(CFG, "guide", [Job("cube", nominal)], grasp_by="table")
     loop.step(View(tcp=None))
     rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", nominal)])))
     assert loop.needs == Need.SCENE                                 # not the wrist: the table camera
-    assert rows[-1][:3] == list(SPEC.park)                          # looked from the park pose
+    over = [b.x_mm, b.y_mm, SPEC.z_above_surface(SPEC.transit_mm)]
+    assert rows[-1][:3] == over and rows[-1][6] == 1                # looked on the way, from above the bin
+    assert all(math.dist(r[:2], SPEC.park[:2]) > 1 for r in rows)   # no trip back to park
     rows = _rows_ok(loop.step(View(tcp=None, detections=[])))       # the cube left the table: held
-    b = CFG.bins["bin_cubes"].center
     opened = next(r for r in rows if r[6] == 0)
     assert math.hypot(opened[0] - b.x_mm, opened[1] - b.y_mm) < 1e-6
     loop.step(View(tcp=None, detections=[Detection("cube", b)]))
@@ -458,13 +463,48 @@ def test_pickloop_table_grasp_check_retries_from_the_same_scene():
     loop.step(View(tcp=None))
     loop.step(View(tcp=None, detections=[Detection("cube", nominal)]))
     rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", moved)])))   # still on the table
-    assert rows[0][6] == 0 and rows[0][:3] == list(SPEC.park)       # opens where it is: nothing is held
+    b = CFG.bins["bin_cubes"].center
+    assert rows[0][6] == 0 and rows[0][:2] == [b.x_mm, b.y_mm]     # opens where it is: nothing is held
     low = min(rows, key=lambda r: r[2])                             # and goes straight back for it
     assert (low[0], low[1]) == (moved.x_mm, moved.y_mm) and loop.needs == Need.SCENE
     rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("cube", moved)])))   # missed again
     ev = loop.drain_events()
     assert loop.done and ev[-1].kind == "stop" and all(r[2] > SPEC.z_above_surface(50) for r in rows)
     assert [e.kind for e in ev].count("trial") == 1
+
+
+def test_locate_bins_follows_the_camera_within_reach():
+    from twincheck_core.checks import locate_bins
+    planned = CFG.bins
+    cubes, screws = planned["bin_cubes"].center, planned["bin_screws"].center
+    seen = [Detection("bin", Pose2D(cubes.x_mm + 28, cubes.y_mm - 9, 12)),
+            Detection("bin", Pose2D(screws.x_mm - 6, screws.y_mm + 4)),
+            Detection("bin", Pose2D(600, -300))]                            # far from any planned bin: ignored
+    got = locate_bins(planned, seen, 100)
+    assert got["bin_cubes"].center.x_mm == cubes.x_mm + 28 and got["bin_cubes"].center.y_mm == cubes.y_mm - 9
+    assert got["bin_screws"].center.x_mm == screws.x_mm - 6
+    assert got["bin_rework"] is planned["bin_rework"]                      # not seen: stays where planned
+    assert locate_bins(planned, seen, 20)["bin_cubes"] is planned["bin_cubes"]    # 30 mm off: out of reach
+    one = locate_bins(planned, [Detection("bin", Pose2D(cubes.x_mm + 5, cubes.y_mm))], 200)
+    assert one["bin_cubes"].center.x_mm == cubes.x_mm + 5 and one["bin_screws"] is planned["bin_screws"]
+
+
+def test_pickloop_releases_over_the_bin_the_camera_sees():
+    nominal = CFG.pick_points["slot_1"]
+    planned = CFG.bins["bin_cubes"].center
+    seen_bin = Pose2D(planned.x_mm + 25, planned.y_mm - 12)          # placed 2.8 cm off its planned spot
+    scene = [Detection("cube", nominal), Detection("bin", seen_bin)]
+    loop = PickLoop(CFG, "guide", [Job("cube", nominal)], grasp_by="table")
+    loop.step(View(tcp=None))
+    loop.step(View(tcp=None, detections=scene))
+    rows = _rows_ok(loop.step(View(tcp=None, detections=[Detection("bin", seen_bin)])))   # held
+    opened = next(r for r in rows if r[6] == 0)
+    assert (opened[0], opened[1]) == (seen_bin.x_mm, seen_bin.y_mm)
+    assert opened[2] == SPEC.z_above_surface(SPEC.bin_height_mm + SPEC.release_above_rim_mm)
+    # the post-place check judges against the bin it sees, so a cube in it passes
+    loop.step(View(tcp=None, detections=[Detection("bin", seen_bin), Detection("cube", seen_bin)]))
+    ev = loop.drain_events()
+    assert [e.decision.outcome.passed for e in ev if e.kind == "decision"] == [True, True, True]
 
 
 def test_bin_pocket_at_only_inside_the_pocket():
@@ -474,6 +514,9 @@ def test_bin_pocket_at_only_inside_the_pocket():
     assert CFG.bin_pocket_at(Pose2D(b.center.x_mm + half - 1, b.center.y_mm - half + 1)) is b
     assert CFG.bin_pocket_at(Pose2D(b.center.x_mm + half + 2, b.center.y_mm)) is None     # the wall, not the pocket
     assert CFG.bin_pocket_at(CFG.pick_points["slot_1"]) is None
+    moved = {"bin_cubes": BinSpec("bin_cubes", Pose2D(b.center.x_mm + 30, b.center.y_mm), 25, 25)}
+    assert CFG.bin_pocket_at(Pose2D(b.center.x_mm + 30, b.center.y_mm), moved).center.x_mm == b.center.x_mm + 30
+    assert CFG.bin_pocket_at(b.center, moved) is None                      # the bin is not there any more
 
 
 # ---------- stats ----------

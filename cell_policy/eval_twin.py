@@ -58,7 +58,7 @@ def main():
             if u.old is None:
                 extra[u.cls] += 1
                 continue
-            sym = cfg.objects[u.cls].symmetry_deg
+            sym = cfg.objects[u.cls].symmetry_deg if u.cls in cfg.objects else 90.0   # a bin: square
             err[u.cls].append((u.shift_mm, abs(yaw_diff_deg(u.new.yaw_deg, u.old.yaw_deg, sym)),
                                u.new.x_mm - u.old.x_mm, u.new.y_mm - u.old.y_mm))
 

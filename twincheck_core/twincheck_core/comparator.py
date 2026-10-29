@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from .checks import (CheckOutcome, CheckPoint, Detection, GraspState, check_post_grasp, check_post_place,
-                     check_pre_pick)
-from .config import Config
+                     check_pre_pick, locate_bins)
+from .config import BinSpec, Config
 from .geometry import Pose2D
 
 
@@ -58,6 +58,8 @@ class Comparator:
         self.mode = mode
         self.stop_on_bad_place = stop_on_bad_place   # False: guide alerts and goes on (no retry can fix a place)
         self.trials: dict[int, TrialState] = {}
+        self.bins: dict[str, BinSpec] = dict(cfg.bins)   # where the bins are now (locate_bins)
+        self.bin_search_mm = float(cfg.raw.get("cell", {}).get("bin_search_mm", 0.0))
         self.trial: TrialState | None = None   # the latest started trial
 
     def start_trial(self, trial_id: int, cls: str, pick_point: Pose2D, target_bin: str | None = None) -> None:
@@ -95,10 +97,17 @@ class Comparator:
     def on_grasp_closed(self, grasp: GraspState, trial_id: int | None = None) -> Decision:
         return self._decide(check_post_grasp(grasp), self._require_trial(trial_id))
 
+    def locate_bins(self, detections: list[Detection]) -> dict[str, BinSpec]:
+        """Move the bins to where this scene shows them (cell.bin_search_mm; 0 = trust the config)."""
+        if self.bin_search_mm > 0:
+            self.bins = locate_bins(self.bins, detections, self.bin_search_mm, self.cfg.thresholds.min_confidence)
+        return self.bins
+
     def on_place_done(self, detections: list[Detection], trial_id: int | None = None) -> Decision:
         t = self._require_trial(trial_id)
-        out = check_post_place(t.cls, self.cfg.bins[t.target_bin], detections, self.cfg.thresholds,
-                               self.cfg.bins, t.pick_point, t.before)
+        self.locate_bins(detections)
+        out = check_post_place(t.cls, self.bins[t.target_bin], detections, self.cfg.thresholds,
+                               self.bins, t.pick_point, t.before)
         return self._decide(out, t)
 
     def _decide(self, out: CheckOutcome, t: TrialState) -> Decision:

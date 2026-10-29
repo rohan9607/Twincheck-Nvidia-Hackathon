@@ -10,6 +10,11 @@ one YOLO-OBB label line per object:
     # v2: random arm poses, three cube colours, clutter, distractors, wide lighting
     /workspace/isaac/python.sh sim/replicator_overhead.py --n 2000 --seed 7 --out /workspace/data/overhead_v2_seed7_n2000 \
         --arm random --colours red yellow blue --max-objects 6 --clutter --distractors 3 --lighting wide
+    # v4: + bins as a class, anywhere on the table at any yaw and colour, parts in them, paler cube colours
+    ... v2 flags ... --bins random --in-bin 0.3 --colour-jitter 0.5
+
+--bins random moves each bin to a new pose and colour per frame and labels it "bin" (its top rim, 50 x 50 mm at
+55 mm): a hand-placed real bin was 1-3 cm off its planned spot, so the cell finds it by camera (Oct 28 run).
 
 A frame where the arm hides more than (1 - --min-visible) of any part is rendered again with another arm pose:
 a label on a part the camera can't see teaches the detector to see things that aren't there.
@@ -78,6 +83,10 @@ def main():
     ap.add_argument("--bin-floor-mm", type=float, default=30.0, help="bin pocket floor above the surface "
                     "(build_twincheck_scene.py: 55 mm tall, 25 mm deep)")
     ap.add_argument("--bin-pocket-mm", type=float, default=35.0)
+    ap.add_argument("--bins", choices=["fixed", "random"], default="fixed",
+                    help="random: each bin anywhere on the table at any yaw and colour, labelled as class 'bin'")
+    ap.add_argument("--colour-jitter", type=float, default=0.0,
+                    help="per frame, wash cube colours toward white and change their brightness by up to this share")
     ap.add_argument("--min-visible", type=float, default=0.6, help="share of each part the arm may not hide")
     ap.add_argument("--starter", default="/workspace/fanuc_er4ia_sim", help="starter folder (fk.py, scene_config.py)")
     args = ap.parse_args()
@@ -85,7 +94,8 @@ def main():
     cfg = load_sim_config()
     import yaml
     proj = yaml.safe_load(open(ROOT / "config" / "twincheck.yaml"))
-    classes = list(cfg["objects"].keys())
+    part_classes = list(cfg["objects"].keys())
+    classes = part_classes + (["bin"] if args.bins == "random" else [])
     rng = random.Random(args.seed)
     np.random.seed(args.seed)
 
@@ -192,6 +202,29 @@ def main():
         (out / "images" / split).mkdir(parents=True, exist_ok=True)
         (out / "labels" / split).mkdir(parents=True, exist_ok=True)
 
+    # Bins: the starter's meshes (/World/Bin_<name>, origin at the bottom centre). Their colliders stay put: parts
+    # are not simulated here, and the arm is posed by joint values.
+    bin_paths = {name: f"/World/Bin_{name}" for name in proj["bins"]}
+    bin_outer = {name: 2 * b["half_x_mm"] for name, b in proj["bins"].items()}
+    bin_h = proj["cell"]["bin_height_mm"]
+    BIN_RGB = [(0.20, 0.55, 0.78), (0.05, 0.17, 0.62), (0.82, 0.56, 0.06), (0.85, 0.70, 0.15), (0.72, 0.52, 0.28),
+               (0.64, 0.06, 0.05), (0.15, 0.55, 0.30)]   # seen on the cell: light blue, yellow, tan; and others
+    shader_home = {}
+
+    def tint(prim_path, rgb):
+        """Set the diffuse colour of the material bound to a prim (its shader inputs:diffuseColor)."""
+        mat, _ = UsdShade.MaterialBindingAPI(stage.GetPrimAtPath(prim_path)).ComputeBoundMaterial()
+        for c in Usd.PrimRange(mat.GetPrim()):
+            a = c.GetAttribute("inputs:diffuseColor")
+            if a:
+                shader_home.setdefault(str(a.GetPath()), a.Get())
+                a.Set(Gf.Vec3f(*rgb))
+
+    def jittered(rgb):
+        w = rng.uniform(0, args.colour_jitter)
+        k = rng.uniform(1 - args.colour_jitter / 2, 1 + args.colour_jitter / 2)
+        return tuple(min(1.0, (c + (1 - c) * w) * k) for c in rgb)
+
     def set_cube_colour(part, colour):
         """The saved scene flattens cube.usda, losing its colour variant set; its Red/Yellow/Blue materials are
         still under <cube>/Visual/Looks, so rebind every bound mesh to the chosen one."""
@@ -199,8 +232,12 @@ def main():
         mat = UsdShade.Material(stage.GetPrimAtPath(f"{part}/Visual/Looks/{colour.capitalize()}"))
         if not mat:
             raise KeyError(f"no {colour} material under {visual.GetPath()}/Looks")
-        rgb = next(c.GetAttribute("inputs:diffuseColor").Get() for c in Usd.PrimRange(mat.GetPrim())
-                   if c.GetAttribute("inputs:diffuseColor"))
+        attr = next(c.GetAttribute("inputs:diffuseColor") for c in Usd.PrimRange(mat.GetPrim())
+                    if c.GetAttribute("inputs:diffuseColor"))
+        rgb = shader_home.setdefault(str(attr.GetPath()), attr.Get())
+        if args.colour_jitter:
+            rgb = Gf.Vec3f(*jittered(rgb))
+            attr.Set(rgb)
         for prim in Usd.PrimRange(visual):
             rel = prim.GetRelationship("material:binding")
             if rel and rel.GetTargets():
@@ -209,6 +246,9 @@ def main():
 
     def outline_px(cls, x, y, yaw, view, projm, lift_mm=0.0):
         """lift_mm: how far the part rests above the table surface (a bin's pocket floor)."""
+        if cls == "bin":    # its top rim
+            corners = obb_corners_mm(x, y, surface_mm + bin_h, yaw, 50.0, 50.0)
+            return project_points(corners / 1000 / mpu, view, projm, W, H)
         spec = proj["objects"][cls]
         corners = obb_corners_mm(x, y, surface_mm + lift_mm + spec.get("height_mm", spec["width_mm"]), yaw,
                                  *footprint_mm(spec))
@@ -236,21 +276,44 @@ def main():
         lift = {}       # part path -> mm above the surface (in a bin)
         bin_parts = {}  # bin name -> parts already in it (one per bin: the pocket is 35 mm)
         margin = 1.0 if (args.clutter and rng.random() < 0.5) else 15.0
+        bin_pose = {n: (b["center"]["x_mm"], b["center"]["y_mm"], 0.0) for n, b in proj["bins"].items()}
+        if args.bins == "random":   # bins first, so parts keep clear of them; none to all of them on the table
+            shown = rng.sample(sorted(bin_paths), rng.randint(0, len(bin_paths)))
+            bin_pose = {}
+            for name in sorted(bin_paths):
+                if name in shown:
+                    for _try in range(40):
+                        x, y, yaw = rng.uniform(190, 470), rng.uniform(-230, 300), rng.uniform(0, 90)
+                        poly = obb_corners_mm(x, y, 0, yaw, bin_outer[name], bin_outer[name])[:, :2]
+                        if not any(overlap(poly, o, 10.0) for o in outlines):
+                            break
+                    else:
+                        shown.remove(name)
+                if name not in shown:
+                    park(bin_paths[name])
+                    continue
+                set_pose_mm(stage, bin_paths[name], x, y, surface_mm, yaw)
+                colour = rng.choice(BIN_RGB)
+                tint(bin_paths[name], jittered(colour) if args.colour_jitter else colour)
+                bin_pose[name] = (x, y, yaw)
+                outlines.append(poly)
         for _ in range(rng.randint(1, args.max_objects)):
-            cls = rng.choice(classes)
+            cls = rng.choice(part_classes)
             free = [p for p in pool[cls] if p not in [q[1] for q in placed]]
             if not free:
                 continue
             spec = proj["objects"][cls]
-            free_bins = [b for b in proj["bins"] if b not in bin_parts]
+            free_bins = [b for b in bin_pose if b not in bin_parts]
             if free_bins and rng.random() < args.in_bin:
                 # in a bin: anywhere its footprint stays inside the pocket at this yaw
                 name = rng.choice(free_bins)
-                b = proj["bins"][name]["center"]
+                bx, by, byaw = bin_pose[name]
                 yaw = rng.uniform(0, 360)
-                fp = obb_corners_mm(0, 0, 0, yaw, *footprint_mm(spec))[:, :2]
+                fp = obb_corners_mm(0, 0, 0, yaw - byaw, *footprint_mm(spec))[:, :2]   # in the bin's own axes
                 room = np.maximum(args.bin_pocket_mm / 2 - 1.0 - np.abs(fp).max(axis=0), 0.0)
-                x, y = b["x_mm"] + rng.uniform(-room[0], room[0]), b["y_mm"] + rng.uniform(-room[1], room[1])
+                u, v = rng.uniform(-room[0], room[0]), rng.uniform(-room[1], room[1])
+                c, s = math.cos(math.radians(byaw)), math.sin(math.radians(byaw))
+                x, y = bx + u * c - v * s, by + u * s + v * c
                 place_part(stage, free[0], cfg["origins"][cls], spec, x, y, yaw, surface_mm + args.bin_floor_mm)
                 if cls == "cube":
                     set_cube_colour(free[0], rng.choice(args.colours))
@@ -311,6 +374,9 @@ def main():
             jitter_prim(stage, c["path"], c["home"], *(rng.gauss(0, args.cam_jitter_mm / 2) for _ in range(3)),
                         rng.gauss(0, args.cam_jitter_deg), axis / np.linalg.norm(axis))
 
+        labelled_bins = ([("bin", bin_paths[n], *bin_pose[n]) for n in sorted(bin_pose)]
+                         if args.bins == "random" else [])
+
         # ---- render; with a random arm, pose it again until it hides no part too much
         arm_deg = None
         for attempt in range(6):
@@ -328,7 +394,7 @@ def main():
                 arm_ids = [int(k) for k, v in seg["info"]["idToLabels"].items()
                            if str(v).startswith(cfg["robot"]["articulation"])]
                 arm_mask = np.isin(seg["data"], arm_ids)
-                for cls, path, x, y, yaw in placed:
+                for cls, path, x, y, yaw in placed + labelled_bins:
                     worst = max(worst, hidden_share(arm_mask, outline_px(cls, x, y, yaw, view, projm,
                                                                          lift.get(path, 0.0))))
             if worst <= 1.0 - args.min_visible:
@@ -349,7 +415,7 @@ def main():
             frame.save(out / "images" / split / f"{stem}.jpg", quality=92)
 
             lines = []
-            for cls, path, x, y, yaw in placed:
+            for cls, path, x, y, yaw in placed + labelled_bins:
                 px = outline_px(cls, x, y, yaw, view, projm, lift.get(path, 0.0))
                 if (px[:, 0].max() < 0 or px[:, 0].min() > W or px[:, 1].max() < 0 or px[:, 1].min() > H):
                     continue  # outside this camera's view
@@ -358,7 +424,7 @@ def main():
             (out / "labels" / split / f"{stem}.txt").write_text("\n".join(lines))
             meta.append({"image": f"{split}/{stem}.jpg", "camera": cam, "arm_deg": arm_deg, "objects": [
                 {"cls": cl, "x_mm": x, "y_mm": y, "yaw_deg": yw, "lift_mm": lift.get(pa, 0.0)}
-                for cl, pa, x, y, yw in placed]})
+                for cl, pa, x, y, yw in placed + labelled_bins]})
 
         if f % 50 == 0:
             print(f"frame {f}/{args.n}  (arm re-posed {rerolls} times so far)", flush=True)

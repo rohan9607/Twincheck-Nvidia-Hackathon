@@ -130,8 +130,13 @@ class TrialLog:
 
 
 class Policy:
-    CAMERAS = ["table", "wrist"]
-    IMAGE_SIZE = tuple(CELL["image_size"])
+    # The client fetches these cameras at IMAGE_SIZE for every observation, even while the arm only moves:
+    # two full frames each time stalled the arm and broke the connection twice on Oct 28. So only the cameras
+    # the checks use, and full size only for the observation a check looks at (IDLE_SIZE otherwise).
+    CAMERAS = ["table"] if CELL.get("grasp_check") == "table" else ["table", "wrist"]
+    LOOK_SIZE = tuple(CELL["image_size"])
+    IDLE_SIZE = tuple(CELL.get("idle_image_size", CELL["image_size"]))
+    IMAGE_SIZE = LOOK_SIZE
     IMAGE_FORMAT = CELL["image_format"]
     ACTION = "tcp"
     PREFETCH = False
@@ -192,10 +197,13 @@ class Policy:
                 view.detections = self.table.detect(obs["images"]["table"]) if self.table else []
                 self.trials.look(self.rollout, "table", obs["images"].get("table"), view.tcp, view.detections)
             elif self.loop.needs == Need.GRASP:          # look even without a wrist check: keep the frame
-                view.grasp = self.wrist.check(obs["images"]["wrist"]) if self.wrist else None
-                self.trials.look(self.rollout, "wrist", obs["images"].get("wrist"), view.tcp, view.grasp)
+                img = obs["images"].get("wrist")
+                view.grasp = self.wrist.check(img) if (self.wrist and img is not None) else None
+                self.trials.look(self.rollout, "wrist", img, view.tcp, view.grasp)
             self.pending = self.loop.step(view)
             for ev in self.loop.drain_events():
                 self.trials.write(self.rollout, ev)
         chunk, self.pending = self.pending[:MAX_CHUNK], self.pending[MAX_CHUNK:]
+        looks_next = not self.pending and self.loop.needs != Need.NOTHING
+        self.IMAGE_SIZE = self.LOOK_SIZE if looks_next else self.IDLE_SIZE
         return chunk

@@ -137,7 +137,7 @@ cell:
   step_s: 0.1                      # each returned row plays as one 0.1 s step
   max_step_mm: 15                  # per row: 150 mm/s
   max_step_deg: 10
-  settle_rows: 8                   # hold this long after arriving, so the arm is still for the cameras
+  settle_rows: 6                   # hold this long after arriving, so the arm is still for the cameras
   # The real arm moves at most about 55 mm/s and heads straight for the LATEST target, so open-loop rows
   # cut corners (diagonal descents onto the cube: 9 controller faults) and the jaws closed 11 cm above the
   # cube (dry run Oct 23, LeRobotDataset r20261023-213a3c). Each leg now waits until the measured fingertip
@@ -145,12 +145,12 @@ cell:
   arrive_tol_mm: 2.0
   arrive_tol_deg: 3.0
   arrive_timeout_s: 30             # not there by then (blocked, e.g. resting on a part): stop the rollout
-  wait_chunk_rows: 10              # rows per act() while waiting for arrival
+  wait_chunk_rows: 4               # rows per act() while waiting for arrival (10 noticed arrival up to 1 s late)
   grip_rows: 5                     # rows to hold while the jaws close or open
   hover_mm: 50                     # fingertips above the surface before descending
   transit_mm: 110                  # fingertips above the surface when carrying (bins are 55 mm tall)
   tip_clearance_mm: 2.5            # fingertips above the surface when grasping (starter v0.5)
-  release_above_rim_mm: 20
+  release_above_rim_mm: 8          # 20 let cubes bounce off the rim (Oct 28); the fingers stay above the rim
   bin_height_mm: 55
   bin_floor_mm: 30                 # a part in a bin rests on the pocket floor, 30 mm above the surface
   bin_pocket_mm: 35                #   in a 35 x 35 mm pocket (organizers' CAD)
@@ -159,8 +159,11 @@ cell:
   stop_on_bad_place: false         # guide: a failed post-place check alerts and goes on to the next part.
                                    #   No retry can fix a place, so stopping only forfeits the rest; in the twin
                                    #   every stop was a false alarm on a part hidden in its pocket (Oct 26)
+  grasp_look: bin                  # take the table look from above the target bin (park: go back to park first)
+  bin_search_mm: 100               # use the bin the table camera sees within this of its planned spot (0: don't)
   grasp_check: table               # post-grasp: table (park, look where the part was: proven detector) |
                                    #   wrist (needs a wrist method that works on the real camera)
+  idle_image_size: [320, 180]      # observations no check looks at: only the arm pose is used
   image_size: [1920, 1080]         # full frame: a 10 mm cube is only about 3 px wide at 640 x 360
   image_format: jpeg
   sequence:                        # what each rollout picks, in order (same order in placement.yaml)

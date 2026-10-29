@@ -62,6 +62,25 @@ def nearest_detection(target: Pose2D, detections: list[Detection], cls: str | No
     return best
 
 
+def locate_bins(bins: dict[str, BinSpec], detections: list[Detection], radius_mm: float,
+                min_confidence: float = 0.0) -> dict[str, BinSpec]:
+    """The bins where the camera sees them: each configured bin moves to the nearest "bin" detection within
+    radius_mm (closest pairs first, each detection used once). A bin not seen keeps its configured place.
+    Hand-placed bins on the real cell sat 1-3 cm off their planned spot (Oct 28), and the pocket leaves a
+    10 mm cube only about 12 mm either way."""
+    seen = [d for d in detections if d.cls == "bin" and d.confidence >= min_confidence]
+    pairs = sorted((d.pose.distance_to(b.center), name, i) for name, b in bins.items() for i, d in enumerate(seen))
+    out, used = dict(bins), set()
+    for dist, name, i in pairs:
+        if dist > radius_mm or i in used or out[name] is not bins[name]:
+            continue
+        b = bins[name]
+        out[name] = BinSpec(b.name, Pose2D(seen[i].pose.x_mm, seen[i].pose.y_mm, seen[i].pose.yaw_deg),
+                            b.half_x_mm, b.half_y_mm)
+        used.add(i)
+    return out
+
+
 def check_pre_pick(expected_pick: Pose2D, cls: str, detections: list[Detection], th: Thresholds,
                    symmetry_deg: float) -> CheckOutcome:
     """Is the object actually where the robot is about to grab?"""

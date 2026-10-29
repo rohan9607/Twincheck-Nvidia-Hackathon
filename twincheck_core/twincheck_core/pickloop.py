@@ -8,8 +8,13 @@ the arm, returns those rows, and sets `needs`. The policy then fills that part o
       -> post-grasp check -> PLACE (carry high, release over the bin)
       -> SCAN: post-place check, and the same scene is the next job's pre-pick scene
 
-The post-grasp check (config cell.grasp_check) looks with the wrist camera ("wrist"), or parks and looks
-with the table camera for the part where it was ("table"); a table retry re-aims from that same scene.
+The post-grasp check (config cell.grasp_check) looks with the wrist camera ("wrist"), or with the table
+camera for the part where it was ("table"); a table retry re-aims from that same scene. The table look is taken
+from above the target bin (cell.grasp_look: bin), on the way, or from the park pose (park): going back to park
+cost about 15 s a pick on the real arm (Oct 28).
+
+Bins are where the camera sees them (cell.bin_search_mm, Comparator.locate_bins): the place, the post-place check
+and "is this part already sorted" use those, not the planned spots.
 
 Every leg ends at an arrival gate: with feedback (view.tcp), the next leg, a gripper change and a camera
 look wait until the measured fingertip is at the leg's goal. The real arm moves at about 55 mm/s and heads
@@ -93,6 +98,9 @@ class PickLoop:
     def __post_init__(self):
         self.spec = CellSpec.from_config(self.cfg)
         self.grasp_by = self.grasp_by or self.cfg.raw["cell"].get("grasp_check", "wrist")
+        self.grasp_look = self.cfg.raw["cell"].get("grasp_look", "park")
+        if self.grasp_look not in ("park", "bin"):
+            raise ValueError(f"cell.grasp_look must be park or bin, not {self.grasp_look!r}")
         if self.grasp_by not in ("wrist", "table"):
             raise ValueError(f"cell.grasp_check must be wrist or table, not {self.grasp_by!r}")
         self._grasp_at: Pose2D | None = None
@@ -172,6 +180,7 @@ class PickLoop:
             return self._park()
         if self.phase == _Phase.SCAN:
             dets = view.detections or []
+            self.comparator.locate_bins(dets)
             if self.placed_id is not None:
                 self._log(self.comparator.on_place_done(dets, trial_id=self.placed_id), self.placed_id)
                 last = self.events[-1].decision
@@ -232,7 +241,7 @@ class PickLoop:
         if self.mode != "guide":
             return job.nominal
         loose = [d for d in dets if d.cls == job.cls and d.confidence >= self.cfg.thresholds.min_confidence
-                 and not any(b.contains(d.pose) for b in self.cfg.bins.values())]
+                 and not any(b.contains(d.pose) for b in self.comparator.bins.values())]
         if not loose:
             return job.nominal
         return min(loose, key=lambda d: d.pose.distance_to(job.nominal)).pose
@@ -286,16 +295,26 @@ class PickLoop:
                 + self._go(at.x_mm, at.y_mm, s.z_above_surface(s.transit_mm), r, 1.0)
                 + self._hold(s.settle_rows))
         self._grasp_at = at
-        if self.grasp_by == "table":              # park out of the table camera's view and look
-            rows += self._to_park()
+        if self.grasp_by == "table":              # look with the table camera: from above the bin, or parked
+            rows += self._over_bin() if self.grasp_look == "bin" else self._to_park()
             self.phase, self._needs = _Phase.GRASPED, Need.SCENE
         else:
             self.phase, self._needs = _Phase.GRASPED, Need.GRASP
         return rows
 
+    def _target_bin(self) -> Pose2D:
+        return self.comparator.bins[self.comparator.trials[self.trial_id].target_bin].center
+
+    def _over_bin(self) -> list:
+        """Carry the part to above its bin at transit height and hold still there."""
+        s, b = self.spec, self._target_bin()
+        return (self._up_to(s.z_above_surface(s.transit_mm))
+                + self._go(b.x_mm, b.y_mm, s.z_above_surface(s.transit_mm), self.last[5], self.last[6])
+                + self._hold(s.settle_rows))
+
     def _place(self) -> list[Row]:
         s = self.spec
-        b = self.cfg.bins[self.comparator.trials[self.trial_id].target_bin].center
+        b = self._target_bin()
         release = s.z_above_surface(s.bin_height_mm + s.release_above_rim_mm)
         rows = (self._go(b.x_mm, b.y_mm, s.z_above_surface(s.transit_mm), self.last[5], 1.0)
                 + self._go(b.x_mm, b.y_mm, release, self.last[5], 1.0)

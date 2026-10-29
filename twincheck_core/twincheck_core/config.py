@@ -55,10 +55,11 @@ class Config:
     pick_points: dict[str, Pose2D] = field(default_factory=dict)
     raw: dict = field(default_factory=dict)
 
-    def bin_pocket_at(self, p: Pose2D) -> BinSpec | None:
-        """The bin whose pocket holds p, a part resting on that bin's floor (cell.bin_pocket_mm square)."""
+    def bin_pocket_at(self, p: Pose2D, bins: dict[str, BinSpec] | None = None) -> BinSpec | None:
+        """The bin whose pocket holds p, a part resting on that bin's floor (cell.bin_pocket_mm square).
+        bins: where the bins are now (default: their planned spots)."""
         half = float(self.raw.get("cell", {}).get("bin_pocket_mm", 35.0)) / 2
-        for b in self.bins.values():
+        for b in (bins or self.bins).values():
             if abs(p.x_mm - b.center.x_mm) <= half and abs(p.y_mm - b.center.y_mm) <= half:
                 return b
         return None

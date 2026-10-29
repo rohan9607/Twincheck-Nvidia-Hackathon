@@ -5,6 +5,8 @@ pixel_to_base), so our own homography is not needed on the real cell. A part is 
 so each class's pixel ray is cut at the surface plus that class's height. A part in a bin rests 30 mm higher,
 on the pocket floor; cut at the table, the angled camera's ray would land it up to about 24 mm off (twin,
 Oct 26). So each part is also cut at the floor height, and kept there if that lands inside a bin's pocket.
+Bins (the v4 detector's "bin" class) are seen by their top rim, cut at the bin height; the pocket test uses the
+bins seen in the same image, so a moved bin still holds its parts.
 """
 from __future__ import annotations
 
@@ -16,6 +18,7 @@ import cv2
 import numpy as np
 
 from twincheck_core import Config, Detection, GraspState, Pose2D
+from twincheck_core.checks import locate_bins
 from twincheck_core.geometry import canonical_yaw
 
 log = logging.getLogger("twincheck.perception")
@@ -35,6 +38,8 @@ class TableDetector:
         self.conf = conf
         self.surface_m = cfg.raw["cell"]["surface_z_base_mm"] / 1000.0
         self.floor_m = cfg.raw["cell"]["bin_floor_mm"] / 1000.0
+        self.bin_h_m = cfg.raw["cell"]["bin_height_mm"] / 1000.0
+        self.bin_search_mm = float(cfg.raw["cell"].get("bin_search_mm", 0.0))
 
     def _table_mm(self, u: float, v: float, z_m: float) -> tuple[float, float]:
         p = self.to_base(self.cam, (u, v), z=z_m)
@@ -47,23 +52,32 @@ class TableDetector:
         out: list[Detection] = []
         if res.obb is None:
             return out
-        for (cx, cy, bw, bh, r), c, s in zip(res.obb.xywhr.cpu().numpy(), res.obb.cls.cpu().numpy(),
-                                             res.obb.conf.cpu().numpy()):
-            cls = res.names[int(c)]
+        boxes = [(res.names[int(c)], float(cx) * sx, float(cy) * sy, float(r) + (math.pi / 2 if bh > bw else 0.0),
+                  float(s))       # angle: the long axis in the image
+                 for (cx, cy, bw, bh, r), c, s in zip(res.obb.xywhr.cpu().numpy(), res.obb.cls.cpu().numpy(),
+                                                      res.obb.conf.cpu().numpy())]
+        for cls, u, v, ang, s in boxes:          # bins first: parts in them are cut at their floor
+            if cls == "bin":
+                out.append(self._pose(cls, u, v, ang, s, self.surface_m + self.bin_h_m, 90.0))
+        bins = self.cfg.bins
+        if self.bin_search_mm > 0:
+            bins = locate_bins(bins, out, self.bin_search_mm)
+        for cls, u, v, ang, s in boxes:
             spec = self.cfg.objects.get(cls)
             if spec is None:
                 continue
             z = self.surface_m + spec.height_mm / 1000.0
-            ang = float(r) + (math.pi / 2 if bh > bw else 0.0)          # long axis in the image
-            u, v = float(cx) * sx, float(cy) * sy
             xb, yb = self._table_mm(u, v, z + self.floor_m)
-            if self.cfg.bin_pocket_at(Pose2D(xb, yb)) is not None:       # resting in a bin
+            if self.cfg.bin_pocket_at(Pose2D(xb, yb), bins) is not None:   # resting in a bin
                 z += self.floor_m
-            x, y = self._table_mm(u, v, z)
-            x2, y2 = self._table_mm(u + 20 * math.cos(ang), v + 20 * math.sin(ang), z)
-            yaw = canonical_yaw(math.degrees(math.atan2(y2 - y, x2 - x)), spec.symmetry_deg)
-            out.append(Detection(cls, Pose2D(x, y, yaw), float(s), "table"))
+            out.append(self._pose(cls, u, v, ang, s, z, spec.symmetry_deg))
         return out
+
+    def _pose(self, cls: str, u: float, v: float, ang: float, score: float, z_m: float, sym: float) -> Detection:
+        x, y = self._table_mm(u, v, z_m)
+        x2, y2 = self._table_mm(u + 20 * math.cos(ang), v + 20 * math.sin(ang), z_m)
+        yaw = canonical_yaw(math.degrees(math.atan2(y2 - y, x2 - x)), sym)
+        return Detection(cls, Pose2D(x, y, yaw), score, "table")
 
 
 class WristCheck:
