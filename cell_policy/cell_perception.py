@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 
 from twincheck_core import Config, Detection, GraspState, Pose2D
-from twincheck_core.checks import locate_bins
+from twincheck_core.config import BinSpec
 from twincheck_core.geometry import canonical_yaw
 
 log = logging.getLogger("twincheck.perception")
@@ -39,7 +39,6 @@ class TableDetector:
         self.surface_m = cfg.raw["cell"]["surface_z_base_mm"] / 1000.0
         self.floor_m = cfg.raw["cell"]["bin_floor_mm"] / 1000.0
         self.bin_h_m = cfg.raw["cell"]["bin_height_mm"] / 1000.0
-        self.bin_search_mm = float(cfg.raw["cell"].get("bin_search_mm", 0.0))
 
     def _table_mm(self, u: float, v: float, z_m: float) -> tuple[float, float]:
         p = self.to_base(self.cam, (u, v), z=z_m)
@@ -59,9 +58,8 @@ class TableDetector:
         for cls, u, v, ang, s in boxes:          # bins first: parts in them are cut at their floor
             if cls == "bin":
                 out.append(self._pose(cls, u, v, ang, s, self.surface_m + self.bin_h_m, 90.0))
-        bins = self.cfg.bins
-        if self.bin_search_mm > 0:
-            bins = locate_bins(bins, out, self.bin_search_mm)
+        bins = dict(self.cfg.bins)             # the planned spots, and every bin seen, wherever it stands
+        bins |= {f"seen{i}": BinSpec(f"seen{i}", d.pose, 25.0, 25.0) for i, d in enumerate(out)}
         for cls, u, v, ang, s in boxes:
             spec = self.cfg.objects.get(cls)
             if spec is None:
