@@ -134,8 +134,10 @@ cell:
   fingers_down_wp_deg: [-180, 0]   # w, p for fingers straight down; r turns them about z
   preferred_r_deg: 150             # grasp at the equivalent R closest to this (Oct 28: faults at R 95-99, the air
                                    #   hoses beside the fingers; good grasps at R 107-179). null: no preference
-  finger_yaw_offset_deg: 0         # TODO verify in the twin: r at which the fingers close along base +x
-                                   #   (cubes are 90-degree symmetric, so only screws depend on it)
+  finger_yaw_offset_deg: 90        # R at which the jaws close along base +x. Measured Oct 29 from the Oct 28 recording:
+                                   #   the side camera (looks along base -y) sees the two fingers overlap at R 179
+                                   #   and apart at R 107; the table camera agrees. 0 (the old guess) would close a
+                                   #   screw's jaws along it. Cubes don't care (90-degree symmetric).
   step_s: 0.1                      # each returned row plays as one 0.1 s step
   max_step_mm: 15                  # per row: 150 mm/s
   max_step_deg: 10
@@ -170,6 +172,5 @@ cell:
   image_format: jpeg
   sequence:                        # what each rollout picks, in order (same order in placement.yaml)
     - {cls: cube, pick_point: slot_1}
-    - {cls: cube, pick_point: slot_2}     # screws return once finger_yaw_offset_deg is measured: a wrong
-                                          #   guess lands the fingers on the screw (controller fault)
+    - {cls: screw, pick_point: slot_2}    # back since finger_yaw_offset_deg was measured (Oct 29)
     - {cls: cube, pick_point: slot_3}
