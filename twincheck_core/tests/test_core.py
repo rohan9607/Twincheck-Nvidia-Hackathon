@@ -543,7 +543,7 @@ def test_grasp_r_keeps_to_the_preferred_range():
     assert SPEC.r_near_preferred(178, 90) == 178
     assert SPEC.r_near_preferred(-30, 180) == 150              # screw: half turns only
     assert SPEC.r_near_preferred(-150, 180) == -150            # 180-symmetric, no tilt allowed: keep the best
-    assert abs(SPEC.r_near_preferred(-150, 180, 45)) == 180    # a screw may tilt 30: stays in the band (+-180)
+    assert abs(SPEC.r_near_preferred(-150, 180, 45)) == 180    # allowed 45 deg it would tilt to the band edge (real: faulted)
     assert SPEC.r_near_preferred(40, 0) == 40                  # round: no symmetry steps
     for yaw in [y / 2 for y in range(-360, 360)]:              # every cube yaw: inside 100-180, or tilted <= 5
         r = SPEC.r_near_preferred(SPEC.r_for_close_yaw(yaw), 90) % 360
