@@ -37,6 +37,7 @@ class CellSpec:
     bin_height_mm: float
     park: tuple[float, float, float]
     park_r_deg: float
+    max_wrist_turn_deg: float
     preferred_r_deg: float | None
     r_window_deg: tuple[float, float] | None
     max_r_tilt_deg: float
@@ -56,6 +57,7 @@ class CellSpec:
                    int(c["settle_rows"]), int(c["grip_rows"]), float(c["hover_mm"]), float(c["transit_mm"]),
                    float(c["tip_clearance_mm"]), float(c["release_above_rim_mm"]), float(c["bin_height_mm"]),
                    tuple(float(v) for v in c["park_tcp_mm"]), float(c.get("park_r_deg", 0.0)),
+                   float(c.get("max_wrist_turn_deg", 1e9)),
                    None if c.get("preferred_r_deg") is None else float(c["preferred_r_deg"]),
                    None if c.get("r_window_deg") is None else tuple(float(v) for v in c["r_window_deg"]),
                    float(c.get("max_r_tilt_deg", 0.0)), float(c["arrive_tol_mm"]),

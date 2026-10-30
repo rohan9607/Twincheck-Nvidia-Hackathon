@@ -164,6 +164,8 @@ cell:
   bin_height_mm: 55
   bin_floor_mm: 30                 # a part in a bin rests on the pocket floor, 30 mm above the surface
   bin_pocket_mm: 35                #   in a 35 x 35 mm pocket (organizers' CAD)
+  max_wrist_turn_deg: 270          # refuse any move that would turn the tool further than this from where the
+                                   #   rollout began (a guard: the R band keeps it under ~180)
   park_r_deg: 105                  # park with the tool turned like a grasp (J6 about 140 there, mid-band). At 0, every pick turned the wrist half a
                                    #   turn out and half a turn back the SAME way (0 <-> 180 is ambiguous): J6 wound
                                    #   from +63 to -360, its limit, and faulted 5 of 9 baseline rollouts (Oct 30)

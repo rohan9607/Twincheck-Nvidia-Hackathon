@@ -37,7 +37,7 @@ from .cell import CellSpec, OutsideWorkspace, Row, check_row, interpolate
 from .checks import Detection, GraspState, grasp_from_table
 from .comparator import Action, Comparator, Decision, Mode
 from .config import Config
-from .geometry import Pose2D
+from .geometry import Pose2D, wrap_deg
 from .grasp import plan_grasp
 
 
@@ -113,6 +113,7 @@ class PickLoop:
         self._queue: list = []              # rows and _Arrive gates not yet returned
         self._gate: _Arrive | None = None   # waiting for this arrival
         self._waited = 0                    # rows held at the current gate
+        self._turn = 0.0                    # tool R turned since the rollout began, summed the way the wrist turns
         self.job_i = 0
         self.picks = 0
         self.next_id = self.first_trial_id
@@ -255,6 +256,11 @@ class PickLoop:
         rows = interpolate(self.spec, self.last, goal)
         for row in rows:
             check_row(self.spec, row)
+        turn = self._turn + wrap_deg(goal[5] - self.last[5])
+        if abs(turn) > self.spec.max_wrist_turn_deg:     # the hoses would wind up (Oct 30: J6 at -360, faulted)
+            raise OutsideWorkspace(f"the wrist would turn {turn:.0f} deg from where the rollout began "
+                                   f"(limit {self.spec.max_wrist_turn_deg:.0f})")
+        self._turn = turn
         self.last = rows[-1]
         return rows + [_Arrive(list(self.last))]
 

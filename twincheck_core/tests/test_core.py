@@ -588,6 +588,22 @@ def test_wrist_never_winds_up_over_a_rollout(mode):
         assert abs(turn) <= 90, (mode, yaw, turn)           # and it ends near where it started
 
 
+def test_wrist_guard_stops_a_wind_up():
+    # the old settings (park R 0, no R band) wound the wrist half a turn per pick; the guard must stop that
+    from dataclasses import replace
+    old = replace(CFG, raw={**CFG.raw, "cell": {**CFG.raw["cell"], "park_r_deg": 0, "r_window_deg": None}})
+    jobs = [Job(j["cls"], CFG.pick_points[j["pick_point"]]) for j in CFG.raw["cell"]["sequence"]]
+    loop = PickLoop(old, "baseline", jobs, grasp_by="table")
+    loop.step(View(tcp=None))
+    scene = [Detection(j.cls, j.nominal) for j in jobs]
+    for _ in range(12):
+        if loop.done:
+            break
+        _rows_ok(loop.step(View(tcp=None, detections=[] if loop.phase.value == "grasped" else scene)))
+    ev = loop.drain_events()
+    assert loop.done and ev[-1].kind == "stop" and "wrist would turn" in ev[-1].note
+
+
 def test_bin_pocket_at_only_inside_the_pocket():
     b = CFG.bins["bin_cubes"]
     half = CFG.raw["cell"]["bin_pocket_mm"] / 2
