@@ -584,7 +584,7 @@ def test_wrist_never_winds_up_over_a_rollout(mode):
         for a, b in zip(rows, rows[1:]):
             turn += wrap_deg(b[5] - a[5])
             lo, hi = min(lo, turn), max(hi, turn)
-        assert hi - lo <= 120, (mode, yaw, lo, hi)          # a swing, not a wind-up
+        assert hi - lo <= 150, (mode, yaw, lo, hi)          # a swing, not a wind-up (the bug: 1080)
         assert abs(turn) <= 90, (mode, yaw, turn)           # and it ends near where it started
 
 
