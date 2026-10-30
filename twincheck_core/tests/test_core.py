@@ -525,13 +525,18 @@ def test_pickloop_releases_over_the_bin_the_camera_sees():
 
 def test_grasp_r_keeps_to_the_preferred_range():
     assert SPEC.preferred_r_deg == 150
-    assert SPEC.r_near_preferred(95, 90) == -175               # cube: 95 and -175 grasp it the same way
+    assert SPEC.r_window_deg == (100, 180) and SPEC.max_r_tilt_deg == 5
+    assert SPEC.r_near_preferred(95, 90) == 100                # cube: tilt 5 deg into the window, not R 185
+    assert SPEC.r_near_preferred(-169.3, 90) == pytest.approx(100.7)         # Oct 30's two faults: R -169 -> 100.7 (same cube)
     assert SPEC.r_near_preferred(178, 90) == 178
     assert SPEC.r_near_preferred(-30, 180) == 150              # screw: half turns only
+    assert SPEC.r_near_preferred(-150, 180) == -150            # screw: no candidate near the window, keep the best
     assert SPEC.r_near_preferred(40, 0) == 40                  # round: no symmetry steps
-    for yaw in range(-180, 180, 7):                            # every cube yaw lands within 45 deg of 150
-        r = SPEC.r_near_preferred(SPEC.r_for_close_yaw(yaw), 90)
-        assert abs(((r - 150 + 180) % 360) - 180) <= 45 + 1e-9
+    for yaw in [y / 2 for y in range(-360, 360)]:              # every cube yaw: inside 100-180, or tilted <= 5
+        r = SPEC.r_near_preferred(SPEC.r_for_close_yaw(yaw), 90) % 360
+        assert 100 - 1e-9 <= r <= 180 + 1e-9
+        off = min(abs(((r - SPEC.r_for_close_yaw(yaw) - k * 90 + 180) % 360) - 180) for k in range(4))
+        assert off <= 5 + 1e-9
 
 
 def test_pickloop_grasps_a_square_cube_away_from_r_95():
@@ -540,7 +545,7 @@ def test_pickloop_grasps_a_square_cube_away_from_r_95():
     loop.step(View(tcp=None))
     rows = loop.step(View(tcp=None, detections=[Detection("cube", Pose2D(nominal.x_mm, nominal.y_mm, 5))]))
     low = min(rows, key=lambda r: r[2])
-    assert abs(((low[5] - 150 + 180) % 360) - 180) <= 45        # not R 95, where the hoses faulted
+    assert 100 <= low[5] % 360 <= 180                            # not R 95, where the hoses faulted
 
 
 def test_bin_pocket_at_only_inside_the_pocket():

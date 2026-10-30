@@ -37,6 +37,8 @@ class CellSpec:
     bin_height_mm: float
     park: tuple[float, float, float]
     preferred_r_deg: float | None
+    r_window_deg: tuple[float, float] | None
+    max_r_tilt_deg: float
     arrive_tol_mm: float
     arrive_tol_deg: float
     arrive_timeout_rows: int
@@ -53,7 +55,9 @@ class CellSpec:
                    int(c["settle_rows"]), int(c["grip_rows"]), float(c["hover_mm"]), float(c["transit_mm"]),
                    float(c["tip_clearance_mm"]), float(c["release_above_rim_mm"]), float(c["bin_height_mm"]),
                    tuple(float(v) for v in c["park_tcp_mm"]),
-                   None if c.get("preferred_r_deg") is None else float(c["preferred_r_deg"]), float(c["arrive_tol_mm"]),
+                   None if c.get("preferred_r_deg") is None else float(c["preferred_r_deg"]),
+                   None if c.get("r_window_deg") is None else tuple(float(v) for v in c["r_window_deg"]),
+                   float(c.get("max_r_tilt_deg", 0.0)), float(c["arrive_tol_mm"]),
                    float(c["arrive_tol_deg"]), round(float(c["arrive_timeout_s"]) / float(c["step_s"])),
                    int(c["wait_chunk_rows"]))
 
@@ -81,7 +85,23 @@ class CellSpec:
         if self.preferred_r_deg is None or not symmetry_deg:
             return r
         k = round(wrap_deg(self.preferred_r_deg - r) / symmetry_deg)
-        return wrap_deg(r + k * symmetry_deg)
+        best = wrap_deg(r + k * symmetry_deg)
+        if self.r_window_deg is None:
+            return best
+        # Inside r_window_deg there has been no fault in about 40 real grasps (Oct 28 and 30); the faults came
+        # at R 95-99 and at R 191-194. A candidate inside wins; else, if tilting the jaws by at most
+        # max_r_tilt_deg reaches the window, tilt (a 10 mm cube 5 deg off is 10.8 mm across: the jaws open 12).
+        lo, hi = self.r_window_deg
+        cands = [wrap_deg(r + j * symmetry_deg) for j in range(-4, 5)]
+        inside = [c for c in cands if lo <= c % 360 <= hi]
+        if inside:
+            return min(inside, key=lambda c: abs(wrap_deg(c - self.preferred_r_deg)))
+        for c in sorted(cands, key=lambda c: min(abs(wrap_deg(c - lo)), abs(wrap_deg(c - hi)))):
+            edge = lo if abs(wrap_deg(c - lo)) <= abs(wrap_deg(c - hi)) else hi
+            if abs(wrap_deg(c - edge)) <= self.max_r_tilt_deg:
+                return wrap_deg(edge)
+            break
+        return best
 
     def down(self, x: float, y: float, z: float, r: float, gripper: float) -> Row:
         return [x, y, z, self.w_deg, self.p_deg, r, gripper]

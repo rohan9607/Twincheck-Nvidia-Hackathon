@@ -134,6 +134,9 @@ cell:
   fingers_down_wp_deg: [-180, 0]   # w, p for fingers straight down; r turns them about z
   preferred_r_deg: 150             # grasp at the equivalent R closest to this (Oct 28: faults at R 95-99, the air
                                    #   hoses beside the fingers; good grasps at R 107-179). null: no preference
+  r_window_deg: [100, 180]         # grasp inside this R range when the part's symmetry allows: ~40 real grasps
+                                   #   in 107-179 without a fault; faults at 95-99 (Oct 28) and 191-194 (Oct 30)
+  max_r_tilt_deg: 5                # or tilt the jaws this much to reach it (cube 5 deg off: 10.8 mm across)
   finger_yaw_offset_deg: 90        # R at which the jaws close along base +x. Measured Oct 29 from the Oct 28 recording:
                                    #   the side camera (looks along base -y) sees the two fingers overlap at R 179
                                    #   and apart at R 107; the table camera agrees. 0 (the old guess) would close a
