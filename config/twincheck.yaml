@@ -36,6 +36,7 @@ objects:
     symmetry_deg: 180     # an oriented box can't tell head from tip, and the jaws close across the shank either
                           # way (360 made every second screw fail pre-pick by 180 deg: eval_twin, Oct 22)
     width_mm: 6           # the shank: the fingers close across it (the head is 12 mm)
+    max_grasp_tilt_deg: 45  # jaws may close up to this far off square across the shank: 6 / cos 45 = 8.5 mm < 12
     length_mm: 30
     height_mm: 12
     target_bin: bin_screws
@@ -134,9 +135,11 @@ cell:
   fingers_down_wp_deg: [-180, 0]   # w, p for fingers straight down; r turns them about z
   preferred_r_deg: 150             # grasp at the equivalent R closest to this (Oct 28: faults at R 95-99, the air
                                    #   hoses beside the fingers; good grasps at R 107-179). null: no preference
-  r_window_deg: [100, 180]         # grasp inside this R range when the part's symmetry allows: ~40 real grasps
-                                   #   in 107-179 without a fault; faults at 95-99 (Oct 28) and 191-194 (Oct 30)
-  max_r_tilt_deg: 5                # or tilt the jaws this much to reach it (cube 5 deg off: 10.8 mm across)
+  r_window_deg: [100, 180]         # every grasp inside this R band, so J6 swings back and forth in one band:
+                                   #   ~40 real grasps in 107-179 without a fault; faults at 95-99 (Oct 28) and
+                                   #   191-194 (Oct 30, each right after a screw grasped on the other winding)
+  max_r_tilt_deg: 5                # tilt the jaws at most this to reach it (cube 5 deg off: 10.8 mm across);
+                                   #   objects may allow more (max_grasp_tilt_deg)
   finger_yaw_offset_deg: 90        # R at which the jaws close along base +x. Measured Oct 29 from the Oct 28 recording:
                                    #   the side camera (looks along base -y) sees the two fingers overlap at R 179
                                    #   and apart at R 107; the table camera agrees. 0 (the old guess) would close a
@@ -161,6 +164,9 @@ cell:
   bin_height_mm: 55
   bin_floor_mm: 30                 # a part in a bin rests on the pocket floor, 30 mm above the surface
   bin_pocket_mm: 35                #   in a 35 x 35 mm pocket (organizers' CAD)
+  park_r_deg: 105                  # park with the tool turned like a grasp (J6 about 140 there, mid-band). At 0, every pick turned the wrist half a
+                                   #   turn out and half a turn back the SAME way (0 <-> 180 is ambiguous): J6 wound
+                                   #   from +63 to -360, its limit, and faulted 5 of 9 baseline rollouts (Oct 30)
   park_tcp_mm: [170, -330, -60]    # UF0 x, y, z: arm out of the table camera's view for scans  TODO check
   max_picks_per_rollout: 6
   stop_on_bad_place: false         # guide: a failed post-place check alerts and goes on to the next part.

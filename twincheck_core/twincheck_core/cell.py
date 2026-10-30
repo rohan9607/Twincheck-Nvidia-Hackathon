@@ -36,6 +36,7 @@ class CellSpec:
     release_above_rim_mm: float
     bin_height_mm: float
     park: tuple[float, float, float]
+    park_r_deg: float
     preferred_r_deg: float | None
     r_window_deg: tuple[float, float] | None
     max_r_tilt_deg: float
@@ -54,7 +55,7 @@ class CellSpec:
                    float(c["finger_yaw_offset_deg"]), float(c["max_step_mm"]), float(c["max_step_deg"]),
                    int(c["settle_rows"]), int(c["grip_rows"]), float(c["hover_mm"]), float(c["transit_mm"]),
                    float(c["tip_clearance_mm"]), float(c["release_above_rim_mm"]), float(c["bin_height_mm"]),
-                   tuple(float(v) for v in c["park_tcp_mm"]),
+                   tuple(float(v) for v in c["park_tcp_mm"]), float(c.get("park_r_deg", 0.0)),
                    None if c.get("preferred_r_deg") is None else float(c["preferred_r_deg"]),
                    None if c.get("r_window_deg") is None else tuple(float(v) for v in c["r_window_deg"]),
                    float(c.get("max_r_tilt_deg", 0.0)), float(c["arrive_tol_mm"]),
@@ -78,7 +79,7 @@ class CellSpec:
         """Tool R that makes the fingers close along close_yaw (table frame)."""
         return wrap_deg(close_yaw_deg - self.finger_yaw_offset_deg)
 
-    def r_near_preferred(self, r: float, symmetry_deg: float) -> float:
+    def r_near_preferred(self, r: float, symmetry_deg: float, max_tilt_deg: float | None = None) -> float:
         """Of the tool R values that grasp the same part (r plus whole turns of its symmetry), the one closest
         to preferred_r_deg. On the real cell all 3 controller faults of Oct 28 came at R 95-99, with the air hoses
         hanging beside the fingers; all 17 good grasps were at R 107-179."""
@@ -92,13 +93,14 @@ class CellSpec:
         # at R 95-99 and at R 191-194. A candidate inside wins; else, if tilting the jaws by at most
         # max_r_tilt_deg reaches the window, tilt (a 10 mm cube 5 deg off is 10.8 mm across: the jaws open 12).
         lo, hi = self.r_window_deg
+        tilt = self.max_r_tilt_deg if max_tilt_deg is None else max_tilt_deg
         cands = [wrap_deg(r + j * symmetry_deg) for j in range(-4, 5)]
         inside = [c for c in cands if lo <= c % 360 <= hi]
         if inside:
             return min(inside, key=lambda c: abs(wrap_deg(c - self.preferred_r_deg)))
         for c in sorted(cands, key=lambda c: min(abs(wrap_deg(c - lo)), abs(wrap_deg(c - hi)))):
             edge = lo if abs(wrap_deg(c - lo)) <= abs(wrap_deg(c - hi)) else hi
-            if abs(wrap_deg(c - edge)) <= self.max_r_tilt_deg:
+            if abs(wrap_deg(c - edge)) <= tilt:
                 return wrap_deg(edge)
             break
         return best

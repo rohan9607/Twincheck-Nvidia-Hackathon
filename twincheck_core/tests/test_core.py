@@ -173,6 +173,18 @@ def test_post_place_hidden_in_a_shared_bin_needs_the_grasp_seen_over_it():
     assert not check_post_place("cube", b, stayed, th, CFG.bins, pick, before, held_over_bin=True).passed
 
 
+def test_empty_grasp_then_drop_is_not_a_place():
+    # Oct 30 baseline: the blind arm came up empty, still "dropped" over the bin, and a faint detection in the
+    # bin passed the post-place check. After a failed grasp check nothing can have been placed.
+    c = Comparator(CFG, Mode.WATCH)
+    b = CFG.bins["bin_cubes"]
+    c.start_trial(1, "cube", CFG.pick_points["slot_1"])
+    c.on_pre_pick([Detection("cube", CFG.pick_points["slot_1"])])
+    c.on_grasp_closed(GraspState.EMPTY)
+    d = c.on_place_done([Detection("cube", b.center, confidence=0.56)])
+    assert not d.outcome.passed and "nothing placed" in d.outcome.reason
+
+
 def test_comparator_post_place_uses_pre_pick_scene():
     c = Comparator(CFG, Mode.WATCH)
     b = CFG.bins["bin_cubes"]
@@ -530,7 +542,8 @@ def test_grasp_r_keeps_to_the_preferred_range():
     assert SPEC.r_near_preferred(-169.3, 90) == pytest.approx(100.7)         # Oct 30's two faults: R -169 -> 100.7 (same cube)
     assert SPEC.r_near_preferred(178, 90) == 178
     assert SPEC.r_near_preferred(-30, 180) == 150              # screw: half turns only
-    assert SPEC.r_near_preferred(-150, 180) == -150            # screw: no candidate near the window, keep the best
+    assert SPEC.r_near_preferred(-150, 180) == -150            # 180-symmetric, no tilt allowed: keep the best
+    assert abs(SPEC.r_near_preferred(-150, 180, 45)) == 180    # a screw may tilt 30: stays in the band (+-180)
     assert SPEC.r_near_preferred(40, 0) == 40                  # round: no symmetry steps
     for yaw in [y / 2 for y in range(-360, 360)]:              # every cube yaw: inside 100-180, or tilted <= 5
         r = SPEC.r_near_preferred(SPEC.r_for_close_yaw(yaw), 90) % 360
@@ -546,6 +559,33 @@ def test_pickloop_grasps_a_square_cube_away_from_r_95():
     rows = loop.step(View(tcp=None, detections=[Detection("cube", Pose2D(nominal.x_mm, nominal.y_mm, 5))]))
     low = min(rows, key=lambda r: r[2])
     assert 100 <= low[5] % 360 <= 180                            # not R 95, where the hoses faulted
+
+
+@pytest.mark.parametrize("mode", ["baseline", "guide"])
+def test_wrist_never_winds_up_over_a_rollout(mode):
+    """The cell turns the wrist (J6) along with the tool R we command, by the short way each row. Summing those
+    turns over a rollout is how far J6 travels: it must swing back and forth, not keep going one way (Oct 30:
+    J6 wound to -360 and faulted)."""
+    from twincheck_core.geometry import wrap_deg
+    jobs = [Job(j["cls"], CFG.pick_points[j["pick_point"]]) for j in CFG.raw["cell"]["sequence"]]
+    for yaw in (0, 10.7, 45, 89):
+        loop = PickLoop(CFG, mode, [Job(j.cls, Pose2D(j.nominal.x_mm, j.nominal.y_mm, yaw)) for j in jobs],
+                        grasp_by="table")
+        rows = loop.step(View(tcp=None))
+        scene = [Detection(j.cls, Pose2D(j.nominal.x_mm, j.nominal.y_mm, yaw)) for j in jobs]
+        for _ in range(12):
+            if loop.done:
+                break
+            picked = loop.phase.value == "grasped"
+            rows += loop.step(View(tcp=None, detections=[] if picked else scene))
+        first = next(i for i, r in enumerate(rows) if abs(wrap_deg(r[5] - SPEC.park_r_deg)) < 1e-6)
+        rows = rows[first:]                                  # from the first park on (home -> park turns once)
+        turn, lo, hi = 0.0, 0.0, 0.0
+        for a, b in zip(rows, rows[1:]):
+            turn += wrap_deg(b[5] - a[5])
+            lo, hi = min(lo, turn), max(hi, turn)
+        assert hi - lo <= 120, (mode, yaw, lo, hi)          # a swing, not a wind-up
+        assert abs(turn) <= 90, (mode, yaw, turn)           # and it ends near where it started
 
 
 def test_bin_pocket_at_only_inside_the_pocket():

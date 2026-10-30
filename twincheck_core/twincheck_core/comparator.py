@@ -108,6 +108,10 @@ class Comparator:
         """held_over_bin: the grasp was confirmed with the arm above the target bin (check_post_place)."""
         t = self._require_trial(trial_id)
         self.locate_bins(detections)
+        grasp = [o for o in t.outcomes if o.check_point == CheckPoint.POST_GRASP]
+        if grasp and not grasp[-1].passed:   # blind modes go on after a failed grasp: an empty drop places nothing
+            return self._decide(CheckOutcome(CheckPoint.POST_PLACE, False,
+                                             f"nothing placed: the grasp check found the gripper empty"), t)
         out = check_post_place(t.cls, self.bins[t.target_bin], detections, self.cfg.thresholds,
                                self.bins, t.pick_point, t.before, held_over_bin)
         return self._decide(out, t)

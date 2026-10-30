@@ -273,7 +273,7 @@ class PickLoop:
     def _to_park(self) -> list:
         s = self.spec
         x, y, z = s.park
-        return (self._up_to(s.z_above_surface(s.transit_mm)) + self._go(x, y, z, 0.0, self.last[6])
+        return (self._up_to(s.z_above_surface(s.transit_mm)) + self._go(x, y, z, s.park_r_deg, self.last[6])
                 + self._hold(s.settle_rows))
 
     def _park(self) -> list:
@@ -286,8 +286,9 @@ class PickLoop:
 
     def _pick(self, at: Pose2D) -> list[Row]:
         s = self.spec
-        sym = self.cfg.objects[self.comparator.trials[self.trial_id].cls].symmetry_deg
-        r = s.r_near_preferred(s.r_for_close_yaw(at.yaw_deg), sym)
+        cls = self.comparator.trials[self.trial_id].cls
+        tilt = self.cfg.raw["objects"][cls].get("max_grasp_tilt_deg")
+        r = s.r_near_preferred(s.r_for_close_yaw(at.yaw_deg), self.cfg.objects[cls].symmetry_deg, tilt)
         hover, grip = s.z_above_surface(s.hover_mm), s.z_above_surface(s.tip_clearance_mm)
         rows = (self._up_to(s.z_above_surface(s.transit_mm))
                 + self._go(at.x_mm, at.y_mm, s.z_above_surface(s.transit_mm), r, 0.0)
