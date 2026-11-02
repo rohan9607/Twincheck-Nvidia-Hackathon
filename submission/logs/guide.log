@@ -1,0 +1,964 @@
+TwinCheck - Guide run logs (Team Wicked)
+Written 2026-10-30 19:42. Mode: guide (aims where the table camera sees each part and bin).
+Same 10 layouts as the blind baseline (submission/placement.yaml, nudged up to 30 mm, seed 30). Detector v4, trained only on simulator images.
+Real data: test and analysis only, never training.
+
+====================================================================================================
+RUN r20261031-79333b   request q1743a9   policy TwinCheck-guide-v6
+MAIN GUIDE RUN (use for results): final version, same 10 layouts as baseline run r20261030-dcd07a.
+====================================================================================================
+
+Official recording (LeRobotDataset): end reason per rollout (operator scores are on the results page)
+ ep rollout                end reason          length  wrist J6 range (deg)   last fingertip x,y,z (mm)
+  0 r20261031-79333b-t00   operator              109s       -0 .. 187         170, -330, -60
+  1 r20261031-79333b-t01   operator               92s       -0 .. 171         202, -189, -101
+  2 r20261031-79333b-t02   operator              102s       -0 .. 221         170, -330, -60
+  3 r20261031-79333b-t03   operator              100s       -0 .. 193         170, -330, -60
+  4 r20261031-79333b-t04   operator              100s       -0 .. 224         170, -330, -60
+  5 r20261031-79333b-t05   operator               89s       -0 .. 203         230, -58, -139
+  6 r20261031-79333b-t06   operator               88s       -0 .. 221         270, 120, -191
+  7 r20261031-79333b-t07   controller fault       76s       -0 .. 208         361, 117, -318
+  8 r20261031-79333b-t08   operator               94s       -0 .. 211         170, -330, -60
+Totals: 9 recorded rollouts; controller faults 1; ended by operator 8
+
+TwinCheck checks per rollout (pre_pick / post_grasp / post_place)
+19:16:45  r20261031-79333b-t00   trial    trial 1   cube      aim [377.7, -77.4, 6.0]
+19:16:45  r20261031-79333b-t00   decision trial 1   cube   pre_pick   PASS  object on the pick point   [camera saw [377.7, -77.4, 6.0]]
+19:17:01  r20261031-79333b-t00   decision trial 1   cube   post_grasp PASS  object held
+19:17:15  r20261031-79333b-t00   decision trial 1   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:17:15  r20261031-79333b-t00   trial    trial 2   screw     aim [429.5, 19.9, 170.3]
+19:17:15  r20261031-79333b-t00   decision trial 2   screw  pre_pick   PASS  object on the pick point   [camera saw [429.5, 19.9, 170.3]]
+19:17:31  r20261031-79333b-t00   decision trial 2   screw  post_grasp PASS  object held
+19:17:45  r20261031-79333b-t00   decision trial 2   screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:17:45  r20261031-79333b-t00   trial    trial 3   cube      aim [373.9, 82.3, 25.4]
+19:17:45  r20261031-79333b-t00   decision trial 3   cube   pre_pick   PASS  object on the pick point   [camera saw [373.9, 82.3, 25.4]]
+19:18:01  r20261031-79333b-t00   decision trial 3   cube   post_grasp PASS  object held
+19:18:13  r20261031-79333b-t00   decision trial 3   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:18:13  r20261031-79333b-t00   done     trial 0          3 picks
+19:19:16  r20261031-79333b-t01   trial    trial 4   cube      aim [405.2, -100.7, 19.6]
+19:19:16  r20261031-79333b-t01   decision trial 4   cube   pre_pick   PASS  object on the pick point   [camera saw [405.2, -100.7, 19.6]]
+19:19:33  r20261031-79333b-t01   decision trial 4   cube   post_grasp PASS  object held
+19:19:46  r20261031-79333b-t01   decision trial 4   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:19:46  r20261031-79333b-t01   trial    trial 5   screw     aim [439.8, 7.4, 153.0]
+19:19:46  r20261031-79333b-t01   decision trial 5   screw  pre_pick   PASS  object on the pick point   [camera saw [439.8, 7.4, 153.0]]
+19:20:03  r20261031-79333b-t01   decision trial 5   screw  post_grasp PASS  object held
+19:20:16  r20261031-79333b-t01   decision trial 5   screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:20:16  r20261031-79333b-t01   trial    trial 6   cube      aim [363.9, 82.4, 19.2]
+19:20:16  r20261031-79333b-t01   decision trial 6   cube   pre_pick   PASS  object on the pick point   [camera saw [363.9, 82.4, 19.2]]
+19:20:33  r20261031-79333b-t01   decision trial 6   cube   post_grasp PASS  object held
+19:21:42  r20261031-79333b-t02   trial    trial 7   cube      aim [365.8, -121.7, 62.6]
+19:21:42  r20261031-79333b-t02   decision trial 7   cube   pre_pick   PASS  object on the pick point   [camera saw [365.8, -121.7, 62.6]]
+19:21:58  r20261031-79333b-t02   decision trial 7   cube   post_grasp PASS  object held
+19:22:12  r20261031-79333b-t02   decision trial 7   cube   post_place PASS  cube in bin_cubes   [camera saw [291.8, 236.7, 2.8]]
+19:22:12  r20261031-79333b-t02   trial    trial 8   screw     aim [434.5, 3.1, 22.6]
+19:22:12  r20261031-79333b-t02   decision trial 8   screw  pre_pick   PASS  object on the pick point   [camera saw [434.5, 3.1, 22.6]]
+19:22:29  r20261031-79333b-t02   decision trial 8   screw  post_grasp PASS  object held
+19:22:42  r20261031-79333b-t02   decision trial 8   screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:22:42  r20261031-79333b-t02   trial    trial 9   cube      aim [384.0, 75.1, 67.7]
+19:22:42  r20261031-79333b-t02   decision trial 9   cube   pre_pick   PASS  object on the pick point   [camera saw [384.0, 75.1, 67.7]]
+19:22:58  r20261031-79333b-t02   decision trial 9   cube   post_grasp PASS  object held
+19:23:11  r20261031-79333b-t02   decision trial 9   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:23:11  r20261031-79333b-t02   done     trial 0          3 picks
+19:24:14  r20261031-79333b-t03   trial    trial 10  cube      aim [370.3, -117.4, 54.4]
+19:24:14  r20261031-79333b-t03   decision trial 10  cube   pre_pick   PASS  object on the pick point   [camera saw [370.3, -117.4, 54.4]]
+19:24:31  r20261031-79333b-t03   decision trial 10  cube   post_grasp PASS  object held
+19:24:44  r20261031-79333b-t03   decision trial 10  cube   post_place PASS  cube in bin_cubes   [camera saw [291.0, 225.9, 77.3]]
+19:24:44  r20261031-79333b-t03   trial    trial 11  screw     aim [420.5, -3.9, 168.7]
+19:24:44  r20261031-79333b-t03   decision trial 11  screw  pre_pick   PASS  object on the pick point   [camera saw [420.5, -3.9, 168.7]]
+19:25:00  r20261031-79333b-t03   decision trial 11  screw  post_grasp PASS  object held
+19:25:14  r20261031-79333b-t03   decision trial 11  screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:25:14  r20261031-79333b-t03   trial    trial 12  cube      aim [404.6, 80.2, 3.3]
+19:25:14  r20261031-79333b-t03   decision trial 12  cube   pre_pick   PASS  object on the pick point   [camera saw [404.6, 80.2, 3.3]]
+19:25:31  r20261031-79333b-t03   decision trial 12  cube   post_grasp PASS  object held
+19:25:43  r20261031-79333b-t03   decision trial 12  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:25:43  r20261031-79333b-t03   done     trial 0          3 picks
+19:26:31  r20261031-79333b-t04   trial    trial 13  cube      aim [385.2, -91.2, 81.2]
+19:26:31  r20261031-79333b-t04   decision trial 13  cube   pre_pick   PASS  object on the pick point   [camera saw [385.2, -91.2, 81.2]]
+19:26:48  r20261031-79333b-t04   decision trial 13  cube   post_grasp PASS  object held
+19:27:02  r20261031-79333b-t04   decision trial 13  cube   post_place PASS  cube in bin_cubes   [camera saw [281.8, 229.1, 67.7]]
+19:27:02  r20261031-79333b-t04   trial    trial 14  screw     aim [403.9, 14.9, 25.5]
+19:27:02  r20261031-79333b-t04   decision trial 14  screw  pre_pick   PASS  object on the pick point   [camera saw [403.9, 14.9, 25.5]]
+19:27:19  r20261031-79333b-t04   decision trial 14  screw  post_grasp PASS  object held
+19:27:33  r20261031-79333b-t04   decision trial 14  screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:27:33  r20261031-79333b-t04   trial    trial 15  cube      aim [368.6, 95.5, 41.3]
+19:27:33  r20261031-79333b-t04   decision trial 15  cube   pre_pick   PASS  object on the pick point   [camera saw [368.6, 95.5, 41.3]]
+19:27:49  r20261031-79333b-t04   decision trial 15  cube   post_grasp PASS  object held
+19:28:01  r20261031-79333b-t04   decision trial 15  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:28:01  r20261031-79333b-t04   done     trial 0          3 picks
+19:29:00  r20261031-79333b-t05   trial    trial 16  cube      aim [361.8, -102.5, 83.3]
+19:29:00  r20261031-79333b-t05   decision trial 16  cube   pre_pick   PASS  object on the pick point   [camera saw [361.8, -102.5, 83.3]]
+19:29:17  r20261031-79333b-t05   decision trial 16  cube   post_grasp PASS  object held
+19:29:30  r20261031-79333b-t05   decision trial 16  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:29:30  r20261031-79333b-t05   trial    trial 17  screw     aim [397.3, -9.6, 154.9]
+19:29:30  r20261031-79333b-t05   decision trial 17  screw  pre_pick   PASS  object on the pick point   [camera saw [397.3, -9.6, 154.9]]
+19:29:46  r20261031-79333b-t05   decision trial 17  screw  post_grasp PASS  object held
+19:29:59  r20261031-79333b-t05   decision trial 17  screw  post_place FAIL  screw in the wrong bin (bin_cubes, expected bin_screws)   [camera saw [292.9, 234.4, 82.3]]
+19:29:59  r20261031-79333b-t05   trial    trial 18  cube      aim [411.9, 89.6, 3.1]
+19:29:59  r20261031-79333b-t05   decision trial 18  cube   pre_pick   PASS  object on the pick point   [camera saw [411.9, 89.6, 3.1]]
+19:30:16  r20261031-79333b-t05   decision trial 18  cube   post_grasp PASS  object held
+19:31:23  r20261031-79333b-t06   trial    trial 19  cube      aim [403.6, -108.0, 87.3]
+19:31:23  r20261031-79333b-t06   decision trial 19  cube   pre_pick   PASS  object on the pick point   [camera saw [403.6, -108.0, 87.3]]
+19:31:40  r20261031-79333b-t06   decision trial 19  cube   post_grasp PASS  object held
+19:31:52  r20261031-79333b-t06   decision trial 19  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:31:52  r20261031-79333b-t06   trial    trial 20  screw     aim [428.9, -8.0, 21.5]
+19:31:52  r20261031-79333b-t06   decision trial 20  screw  pre_pick   PASS  object on the pick point   [camera saw [428.9, -8.0, 21.5]]
+19:32:09  r20261031-79333b-t06   decision trial 20  screw  post_grasp PASS  object held
+19:32:22  r20261031-79333b-t06   decision trial 20  screw  post_place FAIL  screw in the wrong bin (bin_cubes, expected bin_screws)   [camera saw [292.9, 236.1, 68.0]]
+19:32:22  r20261031-79333b-t06   trial    trial 21  cube      aim [398.0, 78.7, 79.5]
+19:32:22  r20261031-79333b-t06   decision trial 21  cube   pre_pick   PASS  object on the pick point   [camera saw [398.0, 78.7, 79.5]]
+19:32:39  r20261031-79333b-t06   decision trial 21  cube   post_grasp PASS  object held
+19:33:40  r20261031-79333b-t07   trial    trial 22  cube      aim [380.6, -73.5, 8.7]
+19:33:40  r20261031-79333b-t07   decision trial 22  cube   pre_pick   PASS  object on the pick point   [camera saw [380.6, -73.5, 8.7]]
+19:33:56  r20261031-79333b-t07   decision trial 22  cube   post_grasp PASS  object held
+19:34:08  r20261031-79333b-t07   decision trial 22  cube   post_place PASS  cube in bin_cubes (seen as bin)   [camera saw [302.5, 233.3, 87.4]]
+19:34:08  r20261031-79333b-t07   trial    trial 23  screw     aim [448.7, 15.4, 10.4]
+19:34:08  r20261031-79333b-t07   decision trial 23  screw  pre_pick   PASS  object on the pick point   [camera saw [448.7, 15.4, 10.4]]
+19:34:26  r20261031-79333b-t07   decision trial 23  screw  post_grasp PASS  object held
+19:34:40  r20261031-79333b-t07   decision trial 23  screw  post_place FAIL  screw on the edge of bin_screws   [camera saw [289.4, 273.2, 87.6]]
+19:34:40  r20261031-79333b-t07   trial    trial 24  cube      aim [360.9, 117.0, 89.8]
+19:34:40  r20261031-79333b-t07   decision trial 24  cube   pre_pick   PASS  object on the pick point   [camera saw [360.9, 117.0, 89.8]]
+19:35:46  r20261031-79333b-t08   trial    trial 25  cube      aim [370.1, -103.5, 0.2]
+19:35:46  r20261031-79333b-t08   decision trial 25  cube   pre_pick   PASS  object on the pick point   [camera saw [370.1, -103.5, 0.2]]
+19:36:03  r20261031-79333b-t08   decision trial 25  cube   post_grasp PASS  object held
+19:36:16  r20261031-79333b-t08   decision trial 25  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:36:16  r20261031-79333b-t08   trial    trial 26  screw     aim [443.6, -2.5, 147.6]
+19:36:16  r20261031-79333b-t08   decision trial 26  screw  pre_pick   PASS  object on the pick point   [camera saw [443.6, -2.5, 147.6]]
+19:36:32  r20261031-79333b-t08   decision trial 26  screw  post_grasp PASS  object held
+19:36:45  r20261031-79333b-t08   decision trial 26  screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:36:45  r20261031-79333b-t08   trial    trial 27  cube      aim [380.3, 77.8, 86.4]
+19:36:45  r20261031-79333b-t08   decision trial 27  cube   pre_pick   PASS  object on the pick point   [camera saw [380.3, 77.8, 86.4]]
+19:37:01  r20261031-79333b-t08   decision trial 27  cube   post_grasp PASS  object held
+19:37:14  r20261031-79333b-t08   decision trial 27  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:37:14  r20261031-79333b-t08   done     trial 0          3 picks
+19:37:45  r20261031-79333b-t09   trial    trial 28  cube      aim [396.8, -15.8, 75.4]
+19:37:45  r20261031-79333b-t09   decision trial 28  cube   pre_pick   PASS  object on the pick point   [camera saw [396.8, -15.8, 75.4]]
+19:38:02  r20261031-79333b-t09   decision trial 28  cube   post_grasp PASS  object held
+19:38:14  r20261031-79333b-t09   decision trial 28  cube   post_place PASS  cube in bin_cubes   [camera saw [297.8, 235.7, 61.7]]
+19:38:14  r20261031-79333b-t09   trial    trial 29  screw     aim [470.5, 97.0, 115.0]
+19:38:14  r20261031-79333b-t09   decision trial 29  screw  pre_pick   PASS  object on the pick point   [camera saw [470.5, 97.0, 115.0]]
+19:38:33  r20261031-79333b-t09   decision trial 29  screw  post_grasp PASS  object held
+19:38:47  r20261031-79333b-t09   decision trial 29  screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+19:38:47  r20261031-79333b-t09   trial    trial 30  cube      aim [389.4, 109.6, 41.5]
+19:38:47  r20261031-79333b-t09   decision trial 30  cube   pre_pick   PASS  object on the pick point   [camera saw [389.4, 109.6, 41.5]]
+19:39:04  r20261031-79333b-t09   decision trial 30  cube   post_grasp PASS  object held
+Check totals: post_grasp pass: 29, post_place fail: 3, post_place pass: 22, pre_pick pass: 30
+
+Client log (run.py output; image/speed lines removed, private links redacted)
+=== start 1 19:08:07
+2026-10-30 19:08:08,108 INFO request q1743a9 is waiting for the operator's approval ...
+2026-10-30 19:08:23,199 INFO request q1743a9 is waiting for the operator's approval ...
+2026-10-30 19:08:38,353 INFO request q1743a9 is waiting for the operator's approval ...
+2026-10-30 19:08:53,443 INFO request q1743a9 is waiting for the operator's approval ...
+2026-10-30 19:09:08,560 INFO request q1743a9 is waiting for the operator's approval ...
+2026-10-30 19:09:23,723 INFO request q1743a9 is waiting for the operator's approval ...
+2026-10-30 19:09:38,825 INFO request q1743a9 approved: run r20261031-79333b
+2026-10-30 19:09:38,828 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-30 19:09:43,575 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-30 19:09:43,575 INFO TwinCheck guide mode, session real_s6_guide_v6, 3 jobs per rollout
+2026-10-30 19:16:31,064 INFO cell clock offset +0.722 s, round trip 203 ms
+2026-10-30 19:16:31,149 INFO trial r20261031-79333b-t00 (layout L1) running
+2026-10-30 19:16:45,713 INFO trial 1 trial 
+2026-10-30 19:16:45,714 INFO trial 1 decision object on the pick point
+2026-10-30 19:17:01,984 INFO trial 1 decision object held
+2026-10-30 19:17:15,087 INFO trial 1 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:17:15,088 INFO trial 2 trial 
+2026-10-30 19:17:15,088 INFO trial 2 decision object on the pick point
+2026-10-30 19:17:31,657 INFO trial 2 decision object held
+2026-10-30 19:17:45,330 INFO trial 2 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:17:45,330 INFO trial 3 trial 
+2026-10-30 19:17:45,331 INFO trial 3 decision object on the pick point
+2026-10-30 19:18:01,412 INFO trial 3 decision object held
+2026-10-30 19:18:13,900 INFO trial 3 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:18:13,901 INFO trial 0 done 3 picks
+2026-10-30 19:18:19,981 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:18:20,092 INFO trial r20261031-79333b-t00 ended
+2026-10-30 19:19:10,163 INFO cell clock offset +0.726 s, round trip 128 ms
+2026-10-30 19:19:10,369 INFO trial r20261031-79333b-t01 (layout L1) running
+2026-10-30 19:19:16,469 INFO trial 4 trial 
+2026-10-30 19:19:16,469 INFO trial 4 decision object on the pick point
+2026-10-30 19:19:33,614 INFO trial 4 decision object held
+2026-10-30 19:19:46,908 INFO trial 4 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:19:46,908 INFO trial 5 trial 
+2026-10-30 19:19:46,908 INFO trial 5 decision object on the pick point
+2026-10-30 19:20:03,766 INFO trial 5 decision object held
+2026-10-30 19:20:16,606 INFO trial 5 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:20:16,607 INFO trial 6 trial 
+2026-10-30 19:20:16,607 INFO trial 6 decision object on the pick point
+2026-10-30 19:20:33,177 INFO trial 6 decision object held
+2026-10-30 19:20:42,409 INFO trial r20261031-79333b-t01 ended
+2026-10-30 19:21:35,015 INFO cell clock offset +0.728 s, round trip 155 ms
+2026-10-30 19:21:35,127 INFO trial r20261031-79333b-t02 (layout L1) running
+2026-10-30 19:21:42,118 INFO trial 7 trial 
+2026-10-30 19:21:42,119 INFO trial 7 decision object on the pick point
+2026-10-30 19:21:58,954 INFO trial 7 decision object held
+2026-10-30 19:22:12,505 INFO trial 7 decision cube in bin_cubes
+2026-10-30 19:22:12,505 INFO trial 8 trial 
+2026-10-30 19:22:12,505 INFO trial 8 decision object on the pick point
+2026-10-30 19:22:29,370 INFO trial 8 decision object held
+2026-10-30 19:22:42,277 INFO trial 8 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:22:42,277 INFO trial 9 trial 
+2026-10-30 19:22:42,277 INFO trial 9 decision object on the pick point
+2026-10-30 19:22:58,480 INFO trial 9 decision object held
+2026-10-30 19:23:11,153 INFO trial 9 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:23:11,153 INFO trial 0 done 3 picks
+2026-10-30 19:23:17,051 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:23:17,270 INFO trial r20261031-79333b-t02 ended
+2026-10-30 19:24:08,388 INFO cell clock offset +0.739 s, round trip 135 ms
+2026-10-30 19:24:08,562 INFO trial r20261031-79333b-t03 (layout L1) running
+2026-10-30 19:24:14,831 INFO trial 10 trial 
+2026-10-30 19:24:14,831 INFO trial 10 decision object on the pick point
+2026-10-30 19:24:31,707 INFO trial 10 decision object held
+2026-10-30 19:24:44,139 INFO trial 10 decision cube in bin_cubes
+2026-10-30 19:24:44,139 INFO trial 11 trial 
+2026-10-30 19:24:44,140 INFO trial 11 decision object on the pick point
+2026-10-30 19:25:00,733 INFO trial 11 decision object held
+2026-10-30 19:25:14,203 INFO trial 11 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:25:14,203 INFO trial 12 trial 
+2026-10-30 19:25:14,203 INFO trial 12 decision object on the pick point
+2026-10-30 19:25:31,742 INFO trial 12 decision object held
+2026-10-30 19:25:43,625 INFO trial 12 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:25:43,625 INFO trial 0 done 3 picks
+2026-10-30 19:25:48,607 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:25:48,709 INFO trial r20261031-79333b-t03 ended
+2026-10-30 19:26:25,367 INFO cell clock offset +0.735 s, round trip 103 ms
+2026-10-30 19:26:25,571 INFO trial r20261031-79333b-t04 (layout L1) running
+2026-10-30 19:26:31,603 INFO trial 13 trial 
+2026-10-30 19:26:31,603 INFO trial 13 decision object on the pick point
+2026-10-30 19:26:48,653 INFO trial 13 decision object held
+2026-10-30 19:27:02,672 INFO trial 13 decision cube in bin_cubes
+2026-10-30 19:27:02,672 INFO trial 14 trial 
+2026-10-30 19:27:02,672 INFO trial 14 decision object on the pick point
+2026-10-30 19:27:19,773 INFO trial 14 decision object held
+2026-10-30 19:27:33,321 INFO trial 14 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:27:33,322 INFO trial 15 trial 
+2026-10-30 19:27:33,322 INFO trial 15 decision object on the pick point
+2026-10-30 19:27:49,506 INFO trial 15 decision object held
+2026-10-30 19:28:01,910 INFO trial 15 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:28:01,911 INFO trial 0 done 3 picks
+2026-10-30 19:28:05,721 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:28:05,824 INFO trial r20261031-79333b-t04 ended
+2026-10-30 19:28:54,156 INFO cell clock offset +0.755 s, round trip 170 ms
+2026-10-30 19:28:54,360 INFO trial r20261031-79333b-t05 (layout L1) running
+2026-10-30 19:29:00,339 INFO trial 16 trial 
+2026-10-30 19:29:00,340 INFO trial 16 decision object on the pick point
+2026-10-30 19:29:17,897 INFO trial 16 decision object held
+2026-10-30 19:29:30,553 INFO trial 16 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:29:30,553 INFO trial 17 trial 
+2026-10-30 19:29:30,554 INFO trial 17 decision object on the pick point
+2026-10-30 19:29:46,653 INFO trial 17 decision object held
+2026-10-30 19:29:59,639 WARNING trial 17 decision screw in the wrong bin (bin_cubes, expected bin_screws)
+2026-10-30 19:29:59,640 INFO trial 18 trial 
+2026-10-30 19:29:59,640 INFO trial 18 decision object on the pick point
+2026-10-30 19:30:16,036 INFO trial 18 decision object held
+2026-10-30 19:30:23,772 INFO trial r20261031-79333b-t05 ended
+2026-10-30 19:31:16,902 INFO cell clock offset +0.721 s, round trip 152 ms
+2026-10-30 19:31:17,005 INFO trial r20261031-79333b-t06 (layout L1) running
+2026-10-30 19:31:23,437 INFO trial 19 trial 
+2026-10-30 19:31:23,437 INFO trial 19 decision object on the pick point
+2026-10-30 19:31:40,635 INFO trial 19 decision object held
+2026-10-30 19:31:52,821 INFO trial 19 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:31:52,821 INFO trial 20 trial 
+2026-10-30 19:31:52,822 INFO trial 20 decision object on the pick point
+2026-10-30 19:32:09,600 INFO trial 20 decision object held
+2026-10-30 19:32:22,265 WARNING trial 20 decision screw in the wrong bin (bin_cubes, expected bin_screws)
+2026-10-30 19:32:22,265 INFO trial 21 trial 
+2026-10-30 19:32:22,265 INFO trial 21 decision object on the pick point
+2026-10-30 19:32:39,515 INFO trial 21 decision object held
+2026-10-30 19:32:45,184 INFO trial r20261031-79333b-t06 ended
+2026-10-30 19:33:33,914 INFO cell clock offset +0.740 s, round trip 102 ms
+2026-10-30 19:33:34,017 INFO trial r20261031-79333b-t07 (layout L1) running
+2026-10-30 19:33:40,256 INFO trial 22 trial 
+2026-10-30 19:33:40,257 INFO trial 22 decision object on the pick point
+2026-10-30 19:33:56,763 INFO trial 22 decision object held
+2026-10-30 19:34:08,982 INFO trial 22 decision cube in bin_cubes (seen as bin)
+2026-10-30 19:34:08,982 INFO trial 23 trial 
+2026-10-30 19:34:08,984 INFO trial 23 decision object on the pick point
+2026-10-30 19:34:26,879 INFO trial 23 decision object held
+2026-10-30 19:34:40,636 WARNING trial 23 decision screw on the edge of bin_screws
+2026-10-30 19:34:40,637 INFO trial 24 trial 
+2026-10-30 19:34:40,637 INFO trial 24 decision object on the pick point
+2026-10-30 19:34:49,897 INFO trial r20261031-79333b-t07 ended
+2026-10-30 19:35:39,850 INFO cell clock offset +0.735 s, round trip 108 ms
+2026-10-30 19:35:39,971 INFO trial r20261031-79333b-t08 (layout L1) running
+2026-10-30 19:35:46,466 INFO trial 25 trial 
+2026-10-30 19:35:46,467 INFO trial 25 decision object on the pick point
+2026-10-30 19:36:03,562 INFO trial 25 decision object held
+2026-10-30 19:36:16,296 INFO trial 25 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:36:16,297 INFO trial 26 trial 
+2026-10-30 19:36:16,297 INFO trial 26 decision object on the pick point
+2026-10-30 19:36:32,765 INFO trial 26 decision object held
+2026-10-30 19:36:45,590 INFO trial 26 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:36:45,591 INFO trial 27 trial 
+2026-10-30 19:36:45,591 INFO trial 27 decision object on the pick point
+2026-10-30 19:37:01,938 INFO trial 27 decision object held
+2026-10-30 19:37:14,562 INFO trial 27 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 19:37:14,563 INFO trial 0 done 3 picks
+2026-10-30 19:37:14,691 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:37:14,808 INFO trial r20261031-79333b-t08 ended
+2026-10-30 19:37:38,858 INFO cell clock offset +0.735 s, round trip 138 ms
+2026-10-30 19:37:38,960 INFO trial r20261031-79333b-t09 (layout L1) running
+2026-10-30 19:37:45,375 INFO trial 28 trial 
+2026-10-30 19:37:45,376 INFO trial 28 decision object on the pick point
+2026-10-30 19:38:02,498 INFO trial 28 decision object held
+2026-10-30 19:38:14,975 INFO trial 28 decision cube in bin_cubes
+2026-10-30 19:38:14,975 INFO trial 29 trial 
+2026-10-30 19:38:14,976 INFO trial 29 decision object on the pick point
+2026-10-30 19:38:33,830 INFO trial 29 decision object held
+2026-10-30 19:38:47,221 INFO trial 29 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 19:38:47,221 INFO trial 30 trial 
+2026-10-30 19:38:47,222 INFO trial 30 decision object on the pick point
+2026-10-30 19:39:04,303 INFO trial 30 decision object held
+2026-10-30 19:39:13,567 INFO trial r20261031-79333b-t09 ended
+2026-10-30 19:39:14,191 INFO all trials finished
+
+====================================================================================================
+RUN r20261030-45ac83   request q83792b   policy TwinCheck-guide-v5
+Guide v5 (do not use for results): screws tilted up to 45 deg, reverted after this run.
+====================================================================================================
+
+Official recording (LeRobotDataset): end reason per rollout (operator scores are on the results page)
+ ep rollout                end reason          length  wrist J6 range (deg)   last fingertip x,y,z (mm)
+  0 r20261030-45ac83-t00   operator              120s       -0 .. 181         170, -330, -60
+  1 r20261030-45ac83-t01   operator               96s       -0 .. 198         170, -330, -60
+  2 r20261030-45ac83-t02   controller fault       45s       -0 .. 199         441, -0, -331
+  3 r20261030-45ac83-t03   operator               90s       -0 .. 198         278, 109, -190
+  4 r20261030-45ac83-t04   controller fault       43s       -0 .. 198         409, 14, -323
+  5 r20261030-45ac83-t05   operator              102s       -0 .. 171         170, -330, -60
+  6 r20261030-45ac83-t06   operator              101s       -0 .. 247         170, -330, -60
+  7 r20261030-45ac83-t07   operator               99s       -0 .. 199         170, -330, -60
+  8 r20261030-45ac83-t08   controller fault       44s       -0 .. 177         351, -9, -328
+Totals: 9 recorded rollouts; controller faults 3; ended by operator 6
+
+TwinCheck checks per rollout (pre_pick / post_grasp / post_place)
+16:56:39  r20261030-45ac83-t00   trial    trial 1   cube      aim [378.9, -80.4, 53.4]
+16:56:39  r20261030-45ac83-t00   decision trial 1   cube   pre_pick   PASS  object on the pick point   [camera saw [378.9, -80.4, 53.4]]
+16:56:59  r20261030-45ac83-t00   decision trial 1   cube   post_grasp PASS  object held
+16:57:14  r20261030-45ac83-t00   decision trial 1   cube   post_place PASS  cube in bin_cubes   [camera saw [312.8, 229.8, 89.5]]
+16:57:14  r20261030-45ac83-t00   trial    trial 2   screw     aim [439.3, 18.5, 155.7]
+16:57:14  r20261030-45ac83-t00   decision trial 2   screw  pre_pick   PASS  object on the pick point   [camera saw [439.3, 18.5, 155.7]]
+16:57:35  r20261030-45ac83-t00   decision trial 2   screw  post_grasp PASS  object held
+16:57:51  r20261030-45ac83-t00   decision trial 2   screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+16:57:51  r20261030-45ac83-t00   trial    trial 3   cube      aim [374.9, 82.1, 78.5]
+16:57:51  r20261030-45ac83-t00   decision trial 3   cube   pre_pick   PASS  object on the pick point   [camera saw [374.9, 82.1, 78.5]]
+16:58:07  r20261030-45ac83-t00   decision trial 3   cube   post_grasp PASS  object held
+16:58:20  r20261030-45ac83-t00   decision trial 3   cube   post_place PASS  cube in bin_cubes   [camera saw [298.6, 226.7, 64.8]]
+16:58:20  r20261030-45ac83-t00   done     trial 0          3 picks
+16:59:20  r20261030-45ac83-t01   trial    trial 4   cube      aim [407.0, -102.0, 79.2]
+16:59:20  r20261030-45ac83-t01   decision trial 4   cube   pre_pick   PASS  object on the pick point   [camera saw [407.0, -102.0, 79.2]]
+16:59:36  r20261030-45ac83-t01   decision trial 4   cube   post_grasp PASS  object held
+16:59:48  r20261030-45ac83-t01   decision trial 4   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+16:59:48  r20261030-45ac83-t01   trial    trial 5   screw     aim [433.0, 6.8, 165.0]
+16:59:48  r20261030-45ac83-t01   decision trial 5   screw  pre_pick   PASS  object on the pick point   [camera saw [433.0, 6.8, 165.0]]
+17:00:05  r20261030-45ac83-t01   decision trial 5   screw  post_grasp PASS  object held
+17:00:18  r20261030-45ac83-t01   decision trial 5   screw  post_place PASS  screw in bin_screws   [camera saw [385.3, 233.5, 45.0]]
+17:00:18  r20261030-45ac83-t01   trial    trial 6   cube      aim [361.1, 79.9, 34.3]
+17:00:18  r20261030-45ac83-t01   decision trial 6   cube   pre_pick   PASS  object on the pick point   [camera saw [361.1, 79.9, 34.3]]
+17:00:34  r20261030-45ac83-t01   decision trial 6   cube   post_grasp PASS  object held
+17:00:46  r20261030-45ac83-t01   decision trial 6   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:00:46  r20261030-45ac83-t01   done     trial 0          3 picks
+17:01:25  r20261030-45ac83-t02   trial    trial 7   cube      aim [368.6, -125.0, 70.8]
+17:01:25  r20261030-45ac83-t02   decision trial 7   cube   pre_pick   PASS  object on the pick point   [camera saw [368.6, -125.0, 70.8]]
+17:01:43  r20261030-45ac83-t02   decision trial 7   cube   post_grasp PASS  object held
+17:01:55  r20261030-45ac83-t02   decision trial 7   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:01:55  r20261030-45ac83-t02   trial    trial 8   screw     aim [440.8, -0.4, 31.7]
+17:01:55  r20261030-45ac83-t02   decision trial 8   screw  pre_pick   PASS  object on the pick point   [camera saw [440.8, -0.4, 31.7]]
+17:03:01  r20261030-45ac83-t03   trial    trial 9   cube      aim [370.6, -119.0, 76.7]
+17:03:01  r20261030-45ac83-t03   decision trial 9   cube   pre_pick   PASS  object on the pick point   [camera saw [370.6, -119.0, 76.7]]
+17:03:18  r20261030-45ac83-t03   decision trial 9   cube   post_grasp PASS  object held
+17:03:31  r20261030-45ac83-t03   decision trial 9   cube   post_place PASS  cube in bin_cubes   [camera saw [301.7, 226.2, 64.4]]
+17:03:31  r20261030-45ac83-t03   trial    trial 10  screw     aim [417.3, -2.1, 163.4]
+17:03:31  r20261030-45ac83-t03   decision trial 10  screw  pre_pick   PASS  object on the pick point   [camera saw [417.3, -2.1, 163.4]]
+17:03:47  r20261030-45ac83-t03   decision trial 10  screw  post_grasp PASS  object held
+17:04:00  r20261030-45ac83-t03   decision trial 10  screw  post_place PASS  screw left the table and is not on it: in bin_screws, hidden by the parts already there
+17:04:00  r20261030-45ac83-t03   trial    trial 11  cube      aim [402.6, 79.8, 0.6]
+17:04:00  r20261030-45ac83-t03   decision trial 11  cube   pre_pick   PASS  object on the pick point   [camera saw [402.6, 79.8, 0.6]]
+17:04:17  r20261030-45ac83-t03   decision trial 11  cube   post_grasp PASS  object held
+17:05:02  r20261030-45ac83-t04   trial    trial 12  cube      aim [384.7, -92.7, 21.9]
+17:05:02  r20261030-45ac83-t04   decision trial 12  cube   pre_pick   PASS  object on the pick point   [camera saw [384.7, -92.7, 21.9]]
+17:05:17  r20261030-45ac83-t04   decision trial 12  cube   post_grasp PASS  object held
+17:05:30  r20261030-45ac83-t04   decision trial 12  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:05:30  r20261030-45ac83-t04   trial    trial 13  screw     aim [408.8, 14.4, 27.0]
+17:05:30  r20261030-45ac83-t04   decision trial 13  screw  pre_pick   PASS  object on the pick point   [camera saw [408.8, 14.4, 27.0]]
+17:06:37  r20261030-45ac83-t05   trial    trial 14  cube      aim [360.7, -101.7, 44.1]
+17:06:37  r20261030-45ac83-t05   decision trial 14  cube   pre_pick   PASS  object on the pick point   [camera saw [360.7, -101.7, 44.1]]
+17:06:53  r20261030-45ac83-t05   decision trial 14  cube   post_grasp PASS  object held
+17:07:06  r20261030-45ac83-t05   decision trial 14  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:07:06  r20261030-45ac83-t05   trial    trial 15  screw     aim [405.5, -9.6, 149.4]
+17:07:06  r20261030-45ac83-t05   decision trial 15  screw  pre_pick   PASS  object on the pick point   [camera saw [405.5, -9.6, 149.4]]
+17:07:22  r20261030-45ac83-t05   decision trial 15  screw  post_grasp PASS  object held
+17:07:35  r20261030-45ac83-t05   decision trial 15  screw  post_place PASS  screw in bin_screws   [camera saw [383.6, 228.1, 74.6]]
+17:07:35  r20261030-45ac83-t05   trial    trial 16  cube      aim [407.2, 89.3, 17.4]
+17:07:35  r20261030-45ac83-t05   decision trial 16  cube   pre_pick   PASS  object on the pick point   [camera saw [407.2, 89.3, 17.4]]
+17:07:53  r20261030-45ac83-t05   decision trial 16  cube   post_grasp PASS  object held
+17:08:07  r20261030-45ac83-t05   decision trial 16  cube   post_place FAIL  cube in the wrong bin (bin_screws, expected bin_cubes)   [camera saw [392.2, 224.6, 55.2]]
+17:08:07  r20261030-45ac83-t05   done     trial 0          3 picks
+17:09:11  r20261030-45ac83-t06   trial    trial 17  cube      aim [404.0, -107.8, 51.7]
+17:09:11  r20261030-45ac83-t06   decision trial 17  cube   pre_pick   PASS  object on the pick point   [camera saw [404.0, -107.8, 51.7]]
+17:09:27  r20261030-45ac83-t06   decision trial 17  cube   post_grasp PASS  object held
+17:09:42  r20261030-45ac83-t06   decision trial 17  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:09:42  r20261030-45ac83-t06   trial    trial 18  screw     aim [419.7, -16.7, 45.4]
+17:09:42  r20261030-45ac83-t06   decision trial 18  screw  pre_pick   PASS  object on the pick point   [camera saw [419.7, -16.7, 45.4]]
+17:09:59  r20261030-45ac83-t06   decision trial 18  screw  post_grasp PASS  object held
+17:10:12  r20261030-45ac83-t06   decision trial 18  screw  post_place PASS  screw in bin_screws   [camera saw [391.7, 230.0, 63.9]]
+17:10:12  r20261030-45ac83-t06   trial    trial 19  cube      aim [394.8, 74.8, 2.5]
+17:10:12  r20261030-45ac83-t06   decision trial 19  cube   pre_pick   PASS  object on the pick point   [camera saw [394.8, 74.8, 2.5]]
+17:10:28  r20261030-45ac83-t06   decision trial 19  cube   post_grasp PASS  object held
+17:10:41  r20261030-45ac83-t06   decision trial 19  cube   post_place FAIL  cube in the wrong bin (bin_screws, expected bin_cubes)   [camera saw [392.1, 233.6, 65.7]]
+17:10:41  r20261030-45ac83-t06   done     trial 0          3 picks
+17:11:20  r20261030-45ac83-t07   trial    trial 20  cube      aim [389.6, -81.2, 43.9]
+17:11:20  r20261030-45ac83-t07   decision trial 20  cube   pre_pick   PASS  object on the pick point   [camera saw [389.6, -81.2, 43.9]]
+17:11:36  r20261030-45ac83-t07   decision trial 20  cube   post_grasp PASS  object held
+17:11:49  r20261030-45ac83-t07   decision trial 20  cube   post_place FAIL  cube never left the pick area   [camera saw [420.5, -36.3, 14.4]]
+17:11:49  r20261030-45ac83-t07   trial    trial 21  screw     aim [414.1, 9.1, 26.1]
+17:11:49  r20261030-45ac83-t07   decision trial 21  screw  pre_pick   PASS  object on the pick point   [camera saw [414.1, 9.1, 26.1]]
+17:12:06  r20261030-45ac83-t07   decision trial 21  screw  post_grasp PASS  object held
+17:12:20  r20261030-45ac83-t07   decision trial 21  screw  post_place PASS  screw in bin_screws   [camera saw [384.8, 232.7, 89.0]]
+17:12:20  r20261030-45ac83-t07   trial    trial 22  cube      aim [362.7, 95.9, 60.9]
+17:12:20  r20261030-45ac83-t07   decision trial 22  cube   pre_pick   PASS  object on the pick point   [camera saw [362.7, 95.9, 60.9]]
+17:12:36  r20261030-45ac83-t07   decision trial 22  cube   post_grasp PASS  object held
+17:12:48  r20261030-45ac83-t07   decision trial 22  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:12:48  r20261030-45ac83-t07   done     trial 0          3 picks
+17:13:52  r20261030-45ac83-t08   trial    trial 23  cube      aim [363.8, -83.2, 27.4]
+17:13:52  r20261030-45ac83-t08   decision trial 23  cube   pre_pick   PASS  object on the pick point   [camera saw [363.8, -83.2, 27.4]]
+17:14:08  r20261030-45ac83-t08   decision trial 23  cube   post_grasp PASS  object held
+17:14:21  r20261030-45ac83-t08   decision trial 23  cube   post_place FAIL  cube in the wrong bin (bin_screws, expected bin_cubes)   [camera saw [391.5, 226.3, 67.9]]
+17:14:21  r20261030-45ac83-t08   trial    trial 24  screw     aim [351.3, -9.1, 153.4]
+17:14:21  r20261030-45ac83-t08   decision trial 24  screw  pre_pick   PASS  object on the pick point   [camera saw [351.3, -9.1, 153.4]]
+17:15:16  r20261030-45ac83-t09   trial    trial 25  cube      aim [373.6, -81.7, 50.5]
+17:15:16  r20261030-45ac83-t09   decision trial 25  cube   pre_pick   PASS  object on the pick point   [camera saw [373.6, -81.7, 50.5]]
+17:15:32  r20261030-45ac83-t09   decision trial 25  cube   post_grasp PASS  object held
+17:15:45  r20261030-45ac83-t09   decision trial 25  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+17:15:45  r20261030-45ac83-t09   trial    trial 26  screw     aim [409.1, 24.4, 67.7]
+17:15:45  r20261030-45ac83-t09   decision trial 26  screw  pre_pick   PASS  object on the pick point   [camera saw [409.1, 24.4, 67.7]]
+17:16:01  r20261030-45ac83-t09   decision trial 26  screw  post_grasp PASS  object held
+17:16:14  r20261030-45ac83-t09   decision trial 26  screw  post_place PASS  screw in bin_screws   [camera saw [387.2, 231.0, 152.3]]
+17:16:14  r20261030-45ac83-t09   trial    trial 27  cube      aim [338.8, 106.7, 77.6]
+17:16:14  r20261030-45ac83-t09   decision trial 27  cube   pre_pick   PASS  object on the pick point   [camera saw [338.8, 106.7, 77.6]]
+17:16:30  r20261030-45ac83-t09   decision trial 27  cube   post_grasp PASS  object held
+17:16:43  r20261030-45ac83-t09   decision trial 27  cube   post_place FAIL  cube not found in bin_cubes: dropped or lost
+17:16:43  r20261030-45ac83-t09   done     trial 0          3 picks
+Check totals: post_grasp pass: 24, post_place fail: 5, post_place pass: 18, pre_pick pass: 27
+
+Client log (run.py output; image/speed lines removed, private links redacted)
+=== start 1 16:51:15
+2026-10-30 16:51:16,337 INFO request q83792b approved: run r20261030-45ac83
+2026-10-30 16:51:16,338 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-30 16:51:18,664 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-30 16:51:18,664 INFO TwinCheck guide mode, session real_s5_guide_v5, 3 jobs per rollout
+2026-10-30 16:56:26,334 INFO cell clock offset +0.627 s, round trip 259 ms
+2026-10-30 16:56:26,417 INFO trial r20261030-45ac83-t00 (layout L1) running
+2026-10-30 16:56:39,041 INFO trial 1 trial 
+2026-10-30 16:56:39,041 INFO trial 1 decision object on the pick point
+2026-10-30 16:56:59,906 INFO trial 1 decision object held
+2026-10-30 16:57:14,341 INFO trial 1 decision cube in bin_cubes
+2026-10-30 16:57:14,342 INFO trial 2 trial 
+2026-10-30 16:57:14,342 INFO trial 2 decision object on the pick point
+2026-10-30 16:57:35,702 INFO trial 2 decision object held
+2026-10-30 16:57:51,123 INFO trial 2 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 16:57:51,123 INFO trial 3 trial 
+2026-10-30 16:57:51,124 INFO trial 3 decision object on the pick point
+2026-10-30 16:58:07,201 INFO trial 3 decision object held
+2026-10-30 16:58:20,156 INFO trial 3 decision cube in bin_cubes
+2026-10-30 16:58:20,156 INFO trial 0 done 3 picks
+2026-10-30 16:58:26,719 INFO trial r20261030-45ac83-t00 ended
+2026-10-30 16:59:13,821 INFO cell clock offset +0.696 s, round trip 93 ms
+2026-10-30 16:59:13,923 INFO trial r20261030-45ac83-t01 (layout L1) running
+2026-10-30 16:59:20,297 INFO trial 4 trial 
+2026-10-30 16:59:20,297 INFO trial 4 decision object on the pick point
+2026-10-30 16:59:36,497 INFO trial 4 decision object held
+2026-10-30 16:59:48,783 INFO trial 4 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 16:59:48,784 INFO trial 5 trial 
+2026-10-30 16:59:48,785 INFO trial 5 decision object on the pick point
+2026-10-30 17:00:05,072 INFO trial 5 decision object held
+2026-10-30 17:00:18,472 INFO trial 5 decision screw in bin_screws
+2026-10-30 17:00:18,473 INFO trial 6 trial 
+2026-10-30 17:00:18,473 INFO trial 6 decision object on the pick point
+2026-10-30 17:00:34,579 INFO trial 6 decision object held
+2026-10-30 17:00:46,339 INFO trial 6 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:00:46,340 INFO trial 0 done 3 picks
+2026-10-30 17:00:50,180 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 17:00:50,285 INFO trial r20261030-45ac83-t01 ended
+2026-10-30 17:01:19,544 INFO cell clock offset +0.702 s, round trip 100 ms
+2026-10-30 17:01:19,672 INFO trial r20261030-45ac83-t02 (layout L1) running
+2026-10-30 17:01:25,472 INFO trial 7 trial 
+2026-10-30 17:01:25,472 INFO trial 7 decision object on the pick point
+2026-10-30 17:01:43,011 INFO trial 7 decision object held
+2026-10-30 17:01:55,658 INFO trial 7 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:01:55,659 INFO trial 8 trial 
+2026-10-30 17:01:55,660 INFO trial 8 decision object on the pick point
+2026-10-30 17:02:04,421 WARNING POST /actions: no trial is running (robot fault)
+2026-10-30 17:02:04,525 INFO trial r20261030-45ac83-t02 ended
+2026-10-30 17:02:54,290 INFO cell clock offset +0.680 s, round trip 103 ms
+2026-10-30 17:02:54,392 INFO trial r20261030-45ac83-t03 (layout L1) running
+2026-10-30 17:03:01,468 INFO trial 9 trial 
+2026-10-30 17:03:01,469 INFO trial 9 decision object on the pick point
+2026-10-30 17:03:18,363 INFO trial 9 decision object held
+2026-10-30 17:03:31,573 INFO trial 9 decision cube in bin_cubes
+2026-10-30 17:03:31,574 INFO trial 10 trial 
+2026-10-30 17:03:31,574 INFO trial 10 decision object on the pick point
+2026-10-30 17:03:47,909 INFO trial 10 decision object held
+2026-10-30 17:04:00,854 INFO trial 10 decision screw left the table and is not on it: in bin_screws, hidden by the parts already there
+2026-10-30 17:04:00,855 INFO trial 11 trial 
+2026-10-30 17:04:00,856 INFO trial 11 decision object on the pick point
+2026-10-30 17:04:17,922 INFO trial 11 decision object held
+2026-10-30 17:04:24,618 INFO trial r20261030-45ac83-t03 ended
+2026-10-30 17:04:56,046 INFO cell clock offset +0.688 s, round trip 102 ms
+2026-10-30 17:04:56,148 INFO trial r20261030-45ac83-t04 (layout L1) running
+2026-10-30 17:05:02,026 INFO trial 12 trial 
+2026-10-30 17:05:02,026 INFO trial 12 decision object on the pick point
+2026-10-30 17:05:17,609 INFO trial 12 decision object held
+2026-10-30 17:05:30,114 INFO trial 12 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:05:30,115 INFO trial 13 trial 
+2026-10-30 17:05:30,115 INFO trial 13 decision object on the pick point
+2026-10-30 17:05:39,271 INFO trial r20261030-45ac83-t04 ended
+2026-10-30 17:06:31,036 INFO cell clock offset +0.662 s, round trip 157 ms
+2026-10-30 17:06:31,152 INFO trial r20261030-45ac83-t05 (layout L1) running
+2026-10-30 17:06:37,594 INFO trial 14 trial 
+2026-10-30 17:06:37,594 INFO trial 14 decision object on the pick point
+2026-10-30 17:06:53,660 INFO trial 14 decision object held
+2026-10-30 17:07:06,260 INFO trial 14 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:07:06,260 INFO trial 15 trial 
+2026-10-30 17:07:06,261 INFO trial 15 decision object on the pick point
+2026-10-30 17:07:22,650 INFO trial 15 decision object held
+2026-10-30 17:07:35,266 INFO trial 15 decision screw in bin_screws
+2026-10-30 17:07:35,267 INFO trial 16 trial 
+2026-10-30 17:07:35,268 INFO trial 16 decision object on the pick point
+2026-10-30 17:07:53,992 INFO trial 16 decision object held
+2026-10-30 17:08:07,180 WARNING trial 16 decision cube in the wrong bin (bin_screws, expected bin_cubes)
+2026-10-30 17:08:07,181 INFO trial 0 done 3 picks
+2026-10-30 17:08:13,497 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 17:08:13,701 INFO trial r20261030-45ac83-t05 ended
+2026-10-30 17:09:04,571 INFO cell clock offset +0.713 s, round trip 187 ms
+2026-10-30 17:09:04,674 INFO trial r20261030-45ac83-t06 (layout L1) running
+2026-10-30 17:09:11,076 INFO trial 17 trial 
+2026-10-30 17:09:11,077 INFO trial 17 decision object on the pick point
+2026-10-30 17:09:27,569 INFO trial 17 decision object held
+2026-10-30 17:09:42,140 INFO trial 17 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:09:42,141 INFO trial 18 trial 
+2026-10-30 17:09:42,141 INFO trial 18 decision object on the pick point
+2026-10-30 17:09:59,500 INFO trial 18 decision object held
+2026-10-30 17:10:12,121 INFO trial 18 decision screw in bin_screws
+2026-10-30 17:10:12,122 INFO trial 19 trial 
+2026-10-30 17:10:12,122 INFO trial 19 decision object on the pick point
+2026-10-30 17:10:28,348 INFO trial 19 decision object held
+2026-10-30 17:10:41,474 WARNING trial 19 decision cube in the wrong bin (bin_screws, expected bin_cubes)
+2026-10-30 17:10:41,474 INFO trial 0 done 3 picks
+2026-10-30 17:10:45,437 INFO trial r20261030-45ac83-t06 ended
+2026-10-30 17:11:13,699 INFO cell clock offset +0.710 s, round trip 195 ms
+2026-10-30 17:11:14,005 INFO trial r20261030-45ac83-t07 (layout L1) running
+2026-10-30 17:11:20,012 INFO trial 20 trial 
+2026-10-30 17:11:20,013 INFO trial 20 decision object on the pick point
+2026-10-30 17:11:36,887 INFO trial 20 decision object held
+2026-10-30 17:11:49,896 WARNING trial 20 decision cube never left the pick area
+2026-10-30 17:11:49,896 INFO trial 21 trial 
+2026-10-30 17:11:49,897 INFO trial 21 decision object on the pick point
+2026-10-30 17:12:06,811 INFO trial 21 decision object held
+2026-10-30 17:12:20,012 INFO trial 21 decision screw in bin_screws
+2026-10-30 17:12:20,012 INFO trial 22 trial 
+2026-10-30 17:12:20,012 INFO trial 22 decision object on the pick point
+2026-10-30 17:12:36,000 INFO trial 22 decision object held
+2026-10-30 17:12:48,412 INFO trial 22 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:12:48,413 INFO trial 0 done 3 picks
+2026-10-30 17:12:53,133 INFO trial r20261030-45ac83-t07 ended
+2026-10-30 17:13:45,458 INFO cell clock offset +0.705 s, round trip 198 ms
+2026-10-30 17:13:45,559 INFO trial r20261030-45ac83-t08 (layout L1) running
+2026-10-30 17:13:52,317 INFO trial 23 trial 
+2026-10-30 17:13:52,317 INFO trial 23 decision object on the pick point
+2026-10-30 17:14:08,952 INFO trial 23 decision object held
+2026-10-30 17:14:21,786 WARNING trial 23 decision cube in the wrong bin (bin_screws, expected bin_cubes)
+2026-10-30 17:14:21,786 INFO trial 24 trial 
+2026-10-30 17:14:21,787 INFO trial 24 decision object on the pick point
+2026-10-30 17:14:29,493 INFO trial r20261030-45ac83-t08 ended
+2026-10-30 17:15:10,360 INFO cell clock offset +0.712 s, round trip 102 ms
+2026-10-30 17:15:10,560 INFO trial r20261030-45ac83-t09 (layout L1) running
+2026-10-30 17:15:16,172 INFO trial 25 trial 
+2026-10-30 17:15:16,173 INFO trial 25 decision object on the pick point
+2026-10-30 17:15:32,897 INFO trial 25 decision object held
+2026-10-30 17:15:45,217 INFO trial 25 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-30 17:15:45,218 INFO trial 26 trial 
+2026-10-30 17:15:45,218 INFO trial 26 decision object on the pick point
+2026-10-30 17:16:01,911 INFO trial 26 decision object held
+2026-10-30 17:16:14,353 INFO trial 26 decision screw in bin_screws
+2026-10-30 17:16:14,353 INFO trial 27 trial 
+2026-10-30 17:16:14,354 INFO trial 27 decision object on the pick point
+2026-10-30 17:16:30,477 INFO trial 27 decision object held
+2026-10-30 17:16:43,199 WARNING trial 27 decision cube not found in bin_cubes: dropped or lost
+2026-10-30 17:16:43,200 INFO trial 0 done 3 picks
+2026-10-30 17:16:48,979 INFO trial r20261030-45ac83-t09 ended
+2026-10-30 17:16:49,778 INFO all trials finished
+
+====================================================================================================
+RUN r20261030-96b938   request q560ef1   policy TwinCheck-guide-v4
+Guide v4 (Oct 29): before the wrist fix; 8/10 first try.
+====================================================================================================
+
+Official recording (LeRobotDataset): end reason per rollout (operator scores are on the results page)
+ ep rollout                end reason          length  wrist J6 range (deg)   last fingertip x,y,z (mm)
+  0 r20261030-96b938-t00   operator              391s       -0 .. 175         170, -330, -60
+  1 r20261030-96b938-t01   operator              103s     -209 .. 185         170, -330, -60
+  2 r20261030-96b938-t02   operator              116s     -193 .. 167         170, -330, -60
+  3 r20261030-96b938-t03   operator              102s     -208 .. 173         170, -330, -60
+  4 r20261030-96b938-t04   controller fault       72s     -184 .. 144         373, 95, -327
+  5 r20261030-96b938-t05   operator               99s       -0 .. 172         170, -330, -60
+  6 r20261030-96b938-t06   operator               95s     -195 .. 186         170, -330, -60
+  7 r20261030-96b938-t07   controller fault       72s     -180 .. 178         359, 94, -328
+  8 r20261030-96b938-t08   operator              114s       -0 .. 193         170, -330, -60
+  9 r20261030-96b938-t04   operator              102s     -197 .. 207         170, -330, -60
+ 10 r20261030-96b938-t07   operator               96s     -178 .. 202         170, -330, -60
+ 11 r20261030-96b938-t09   operator               98s       -0 .. 192         170, -330, -60
+Totals: 12 recorded rollouts; controller faults 2; ended by operator 10
+
+TwinCheck checks per rollout (pre_pick / post_grasp / post_place)
+19:29:20  r20261030-96b938-t00   trial    trial 1   cube      aim [378.7, -77.8, 43.3]
+19:29:20  r20261030-96b938-t00   decision trial 1   cube   pre_pick   PASS  object on the pick point   [camera saw [378.7, -77.8, 43.3]]
+19:29:36  r20261030-96b938-t00   decision trial 1   cube   post_grasp PASS  object held
+19:29:48  r20261030-96b938-t00   decision trial 1   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:29:48  r20261030-96b938-t00   trial    trial 2   screw     aim [432.2, 19.9, 158.9]
+19:29:48  r20261030-96b938-t00   decision trial 2   screw  pre_pick   PASS  object on the pick point   [camera saw [432.2, 19.9, 158.9]]
+19:30:04  r20261030-96b938-t00   decision trial 2   screw  post_grasp PASS  object held
+19:30:17  r20261030-96b938-t00   decision trial 2   screw  post_place PASS  screw in bin_screws   [camera saw [391.3, 224.4, 48.1]]
+19:30:17  r20261030-96b938-t00   trial    trial 3   cube      aim [371.5, 80.7, 19.9]
+19:30:17  r20261030-96b938-t00   decision trial 3   cube   pre_pick   PASS  object on the pick point   [camera saw [371.5, 80.7, 19.9]]
+19:30:33  r20261030-96b938-t00   decision trial 3   cube   post_grasp PASS  object held
+19:30:46  r20261030-96b938-t00   decision trial 3   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:30:46  r20261030-96b938-t00   done     trial 0          3 picks
+19:36:44  r20261030-96b938-t01   trial    trial 4   cube      aim [378.0, -80.6, 9.1]
+19:36:44  r20261030-96b938-t01   decision trial 4   cube   pre_pick   PASS  object on the pick point   [camera saw [378.0, -80.6, 9.1]]
+19:37:01  r20261030-96b938-t01   decision trial 4   cube   post_grasp PASS  object held
+19:37:13  r20261030-96b938-t01   decision trial 4   cube   post_place PASS  cube in bin_cubes   [camera saw [291.5, 223.1, 75.5]]
+19:37:13  r20261030-96b938-t01   trial    trial 5   screw     aim [429.1, 21.3, 158.1]
+19:37:13  r20261030-96b938-t01   decision trial 5   screw  pre_pick   PASS  object on the pick point   [camera saw [429.1, 21.3, 158.1]]
+19:37:29  r20261030-96b938-t01   decision trial 5   screw  post_grasp PASS  object held
+19:37:41  r20261030-96b938-t01   decision trial 5   screw  post_place PASS  screw in bin_screws   [camera saw [384.7, 231.0, 65.0]]
+19:37:41  r20261030-96b938-t01   trial    trial 6   cube      aim [372.3, 82.4, 82.6]
+19:37:41  r20261030-96b938-t01   decision trial 6   cube   pre_pick   PASS  object on the pick point   [camera saw [372.3, 82.4, 82.6]]
+19:37:58  r20261030-96b938-t01   decision trial 6   cube   post_grasp PASS  object held
+19:38:10  r20261030-96b938-t01   decision trial 6   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:38:10  r20261030-96b938-t01   done     trial 0          3 picks
+19:39:54  r20261030-96b938-t02   trial    trial 7   cube      aim [362.8, -124.6, 46.7]
+19:39:54  r20261030-96b938-t02   decision trial 7   cube   pre_pick   PASS  object on the pick point   [camera saw [362.8, -124.6, 46.7]]
+19:40:10  r20261030-96b938-t02   decision trial 7   cube   post_grasp PASS  object held
+19:40:23  r20261030-96b938-t02   decision trial 7   cube   post_place PASS  cube in bin_cubes   [camera saw [298.0, 237.1, 56.0]]
+19:40:23  r20261030-96b938-t02   trial    trial 8   screw     aim [436.3, 1.4, 17.4]
+19:40:23  r20261030-96b938-t02   decision trial 8   screw  pre_pick   PASS  object on the pick point   [camera saw [436.3, 1.4, 17.4]]
+19:40:40  r20261030-96b938-t02   decision trial 8   screw  post_grasp PASS  object held
+19:40:52  r20261030-96b938-t02   decision trial 8   screw  post_place PASS  screw in bin_screws   [camera saw [391.8, 240.0, 18.8]]
+19:40:52  r20261030-96b938-t02   trial    trial 9   cube      aim [386.5, 74.1, 62.1]
+19:40:52  r20261030-96b938-t02   decision trial 9   cube   pre_pick   PASS  object on the pick point   [camera saw [386.5, 74.1, 62.1]]
+19:41:09  r20261030-96b938-t02   decision trial 9   cube   post_grasp PASS  object held
+19:41:21  r20261030-96b938-t02   decision trial 9   cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:41:21  r20261030-96b938-t02   done     trial 0          3 picks
+19:43:24  r20261030-96b938-t03   trial    trial 10  cube      aim [369.3, -118.7, 19.0]
+19:43:24  r20261030-96b938-t03   decision trial 10  cube   pre_pick   PASS  object on the pick point   [camera saw [369.3, -118.7, 19.0]]
+19:43:41  r20261030-96b938-t03   decision trial 10  cube   post_grasp PASS  object held
+19:43:54  r20261030-96b938-t03   decision trial 10  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:43:54  r20261030-96b938-t03   trial    trial 11  screw     aim [419.9, -3.4, 154.0]
+19:43:54  r20261030-96b938-t03   decision trial 11  screw  pre_pick   PASS  object on the pick point   [camera saw [419.9, -3.4, 154.0]]
+19:44:10  r20261030-96b938-t03   decision trial 11  screw  post_grasp PASS  object held
+19:44:24  r20261030-96b938-t03   decision trial 11  screw  post_place PASS  screw in bin_screws   [camera saw [393.6, 231.5, 166.6]]
+19:44:24  r20261030-96b938-t03   trial    trial 12  cube      aim [403.5, 80.3, 10.6]
+19:44:24  r20261030-96b938-t03   decision trial 12  cube   pre_pick   PASS  object on the pick point   [camera saw [403.5, 80.3, 10.6]]
+19:44:40  r20261030-96b938-t03   decision trial 12  cube   post_grasp PASS  object held
+19:44:53  r20261030-96b938-t03   decision trial 12  cube   post_place PASS  cube in bin_cubes   [camera saw [296.7, 223.3, 71.0]]
+19:44:53  r20261030-96b938-t03   done     trial 0          3 picks
+19:46:44  r20261030-96b938-t04   trial    trial 13  cube      aim [386.2, -92.4, 26.6]
+19:46:44  r20261030-96b938-t04   decision trial 13  cube   pre_pick   PASS  object on the pick point   [camera saw [386.2, -92.4, 26.6]]
+19:46:59  r20261030-96b938-t04   decision trial 13  cube   post_grasp PASS  object held
+19:47:12  r20261030-96b938-t04   decision trial 13  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:47:12  r20261030-96b938-t04   trial    trial 14  screw     aim [404.5, 8.6, 32.9]
+19:47:12  r20261030-96b938-t04   decision trial 14  screw  pre_pick   PASS  object on the pick point   [camera saw [404.5, 8.6, 32.9]]
+19:47:28  r20261030-96b938-t04   decision trial 14  screw  post_grasp PASS  object held
+19:47:41  r20261030-96b938-t04   decision trial 14  screw  post_place PASS  screw in bin_screws (seen as cube)   [camera saw [391.4, 230.3, 51.6]]
+19:47:41  r20261030-96b938-t04   trial    trial 15  cube      aim [370.2, 93.9, 10.7]
+19:47:41  r20261030-96b938-t04   decision trial 15  cube   pre_pick   PASS  object on the pick point   [camera saw [370.2, 93.9, 10.7]]
+19:49:52  r20261030-96b938-t05   trial    trial 16  cube      aim [362.5, -103.5, 33.1]
+19:49:52  r20261030-96b938-t05   decision trial 16  cube   pre_pick   PASS  object on the pick point   [camera saw [362.5, -103.5, 33.1]]
+19:50:08  r20261030-96b938-t05   decision trial 16  cube   post_grasp PASS  object held
+19:50:21  r20261030-96b938-t05   decision trial 16  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:50:21  r20261030-96b938-t05   trial    trial 17  screw     aim [400.9, -7.5, 152.5]
+19:50:21  r20261030-96b938-t05   decision trial 17  screw  pre_pick   PASS  object on the pick point   [camera saw [400.9, -7.5, 152.5]]
+19:50:37  r20261030-96b938-t05   decision trial 17  screw  post_grasp PASS  object held
+19:50:50  r20261030-96b938-t05   decision trial 17  screw  post_place PASS  screw in bin_screws   [camera saw [390.6, 231.4, 106.5]]
+19:50:50  r20261030-96b938-t05   trial    trial 18  cube      aim [406.5, 87.9, 53.3]
+19:50:50  r20261030-96b938-t05   decision trial 18  cube   pre_pick   PASS  object on the pick point   [camera saw [406.5, 87.9, 53.3]]
+19:51:06  r20261030-96b938-t05   decision trial 18  cube   post_grasp PASS  object held
+19:51:19  r20261030-96b938-t05   decision trial 18  cube   post_place PASS  cube in bin_cubes   [camera saw [292.8, 226.1, 81.7]]
+19:51:19  r20261030-96b938-t05   done     trial 0          3 picks
+19:53:05  r20261030-96b938-t06   trial    trial 19  cube      aim [405.6, -109.1, 67.6]
+19:53:05  r20261030-96b938-t06   decision trial 19  cube   pre_pick   PASS  object on the pick point   [camera saw [405.6, -109.1, 67.6]]
+19:53:21  r20261030-96b938-t06   decision trial 19  cube   post_grasp PASS  object held
+19:53:34  r20261030-96b938-t06   decision trial 19  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:53:34  r20261030-96b938-t06   trial    trial 20  screw     aim [413.8, -7.9, 15.2]
+19:53:34  r20261030-96b938-t06   decision trial 20  screw  pre_pick   PASS  object on the pick point   [camera saw [413.8, -7.9, 15.2]]
+19:53:51  r20261030-96b938-t06   decision trial 20  screw  post_grasp PASS  object held
+19:54:04  r20261030-96b938-t06   decision trial 20  screw  post_place PASS  screw in bin_screws   [camera saw [393.7, 231.6, 12.9]]
+19:54:04  r20261030-96b938-t06   trial    trial 21  cube      aim [393.9, 73.8, 27.2]
+19:54:04  r20261030-96b938-t06   decision trial 21  cube   pre_pick   PASS  object on the pick point   [camera saw [393.9, 73.8, 27.2]]
+19:54:20  r20261030-96b938-t06   decision trial 21  cube   post_grasp PASS  object held
+19:54:32  r20261030-96b938-t06   decision trial 21  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:54:32  r20261030-96b938-t06   done     trial 0          3 picks
+19:56:20  r20261030-96b938-t07   trial    trial 22  cube      aim [388.6, -82.2, 61.6]
+19:56:20  r20261030-96b938-t07   decision trial 22  cube   pre_pick   PASS  object on the pick point   [camera saw [388.6, -82.2, 61.6]]
+19:56:37  r20261030-96b938-t07   decision trial 22  cube   post_grasp PASS  object held
+19:56:49  r20261030-96b938-t07   decision trial 22  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+19:56:49  r20261030-96b938-t07   trial    trial 23  screw     aim [404.9, 0.8, 30.2]
+19:56:49  r20261030-96b938-t07   decision trial 23  screw  pre_pick   PASS  object on the pick point   [camera saw [404.9, 0.8, 30.2]]
+19:57:05  r20261030-96b938-t07   decision trial 23  screw  post_grasp PASS  object held
+19:57:17  r20261030-96b938-t07   decision trial 23  screw  post_place PASS  screw in bin_screws   [camera saw [386.5, 233.4, 52.8]]
+19:57:17  r20261030-96b938-t07   trial    trial 24  cube      aim [358.9, 94.2, 14.2]
+19:57:17  r20261030-96b938-t07   decision trial 24  cube   pre_pick   PASS  object on the pick point   [camera saw [358.9, 94.2, 14.2]]
+19:59:57  r20261030-96b938-t08   trial    trial 25  cube      aim [367.7, -85.0, 68.0]
+19:59:57  r20261030-96b938-t08   decision trial 25  cube   pre_pick   PASS  object on the pick point   [camera saw [367.7, -85.0, 68.0]]
+20:00:13  r20261030-96b938-t08   decision trial 25  cube   post_grasp PASS  object held
+20:00:25  r20261030-96b938-t08   decision trial 25  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+20:00:25  r20261030-96b938-t08   trial    trial 26  screw     aim [425.0, -28.1, 172.5]
+20:00:25  r20261030-96b938-t08   decision trial 26  screw  pre_pick   PASS  object on the pick point   [camera saw [425.0, -28.1, 172.5]]
+20:00:42  r20261030-96b938-t08   decision trial 26  screw  post_grasp PASS  object held
+20:00:55  r20261030-96b938-t08   decision trial 26  screw  post_place PASS  screw in bin_screws   [camera saw [397.0, 232.3, 88.4]]
+20:00:55  r20261030-96b938-t08   trial    trial 27  cube      aim [378.1, 75.3, 46.5]
+20:00:55  r20261030-96b938-t08   decision trial 27  cube   pre_pick   PASS  object on the pick point   [camera saw [378.1, 75.3, 46.5]]
+20:01:12  r20261030-96b938-t08   decision trial 27  cube   post_grasp PASS  object held
+20:01:24  r20261030-96b938-t08   decision trial 27  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+20:01:24  r20261030-96b938-t08   done     trial 0          3 picks
+20:02:39  r20261030-96b938-t04   trial    trial 28  cube      aim [383.8, -92.1, 89.3]
+20:02:39  r20261030-96b938-t04   decision trial 28  cube   pre_pick   PASS  object on the pick point   [camera saw [383.8, -92.1, 89.3]]
+20:02:55  r20261030-96b938-t04   decision trial 28  cube   post_grasp PASS  object held
+20:03:08  r20261030-96b938-t04   decision trial 28  cube   post_place PASS  cube in bin_cubes   [camera saw [279.7, 225.7, 70.4]]
+20:03:08  r20261030-96b938-t04   trial    trial 29  screw     aim [405.7, 13.1, 14.1]
+20:03:08  r20261030-96b938-t04   decision trial 29  screw  pre_pick   PASS  object on the pick point   [camera saw [405.7, 13.1, 14.1]]
+20:03:24  r20261030-96b938-t04   decision trial 29  screw  post_grasp PASS  object held
+20:03:37  r20261030-96b938-t04   decision trial 29  screw  post_place PASS  screw in bin_screws   [camera saw [394.2, 240.7, 152.5]]
+20:03:37  r20261030-96b938-t04   trial    trial 30  cube      aim [367.0, 96.4, 58.2]
+20:03:37  r20261030-96b938-t04   decision trial 30  cube   pre_pick   PASS  object on the pick point   [camera saw [367.0, 96.4, 58.2]]
+20:03:54  r20261030-96b938-t04   decision trial 30  cube   post_grasp PASS  object held
+20:04:06  r20261030-96b938-t04   decision trial 30  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+20:04:06  r20261030-96b938-t04   done     trial 0          3 picks
+20:05:23  r20261030-96b938-t07   trial    trial 31  cube      aim [388.7, -80.3, 84.7]
+20:05:23  r20261030-96b938-t07   decision trial 31  cube   pre_pick   PASS  object on the pick point   [camera saw [388.7, -80.3, 84.7]]
+20:05:38  r20261030-96b938-t07   decision trial 31  cube   post_grasp PASS  object held
+20:05:51  r20261030-96b938-t07   decision trial 31  cube   post_place PASS  cube in bin_cubes   [camera saw [291.8, 239.5, 59.6]]
+20:05:51  r20261030-96b938-t07   trial    trial 32  screw     aim [412.4, 8.5, 32.6]
+20:05:51  r20261030-96b938-t07   decision trial 32  screw  pre_pick   PASS  object on the pick point   [camera saw [412.4, 8.5, 32.6]]
+20:06:07  r20261030-96b938-t07   decision trial 32  screw  post_grasp PASS  object held
+20:06:20  r20261030-96b938-t07   decision trial 32  screw  post_place PASS  screw in bin_screws   [camera saw [386.8, 242.2, 18.7]]
+20:06:20  r20261030-96b938-t07   trial    trial 33  cube      aim [360.1, 93.5, 70.5]
+20:06:20  r20261030-96b938-t07   decision trial 33  cube   pre_pick   PASS  object on the pick point   [camera saw [360.1, 93.5, 70.5]]
+20:06:36  r20261030-96b938-t07   decision trial 33  cube   post_grasp PASS  object held
+20:06:49  r20261030-96b938-t07   decision trial 33  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+20:06:49  r20261030-96b938-t07   done     trial 0          3 picks
+20:08:04  r20261030-96b938-t09   trial    trial 34  cube      aim [376.6, -80.2, 75.7]
+20:08:04  r20261030-96b938-t09   decision trial 34  cube   pre_pick   PASS  object on the pick point   [camera saw [376.6, -80.2, 75.7]]
+20:08:20  r20261030-96b938-t09   decision trial 34  cube   post_grasp PASS  object held
+20:08:33  r20261030-96b938-t09   decision trial 34  cube   post_place PASS  cube in bin_cubes   [camera saw [284.7, 224.2, 71.0]]
+20:08:33  r20261030-96b938-t09   trial    trial 35  screw     aim [423.7, 5.0, 142.3]
+20:08:33  r20261030-96b938-t09   decision trial 35  screw  pre_pick   PASS  object on the pick point   [camera saw [423.7, 5.0, 142.3]]
+20:08:50  r20261030-96b938-t09   decision trial 35  screw  post_grasp PASS  object held
+20:09:03  r20261030-96b938-t09   decision trial 35  screw  post_place PASS  screw in bin_screws   [camera saw [395.8, 225.2, 171.5]]
+20:09:03  r20261030-96b938-t09   trial    trial 36  cube      aim [383.7, 119.8, 20.8]
+20:09:03  r20261030-96b938-t09   decision trial 36  cube   pre_pick   PASS  object on the pick point   [camera saw [383.7, 119.8, 20.8]]
+20:09:19  r20261030-96b938-t09   decision trial 36  cube   post_grasp PASS  object held
+20:09:31  r20261030-96b938-t09   decision trial 36  cube   post_place PASS  cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+20:09:31  r20261030-96b938-t09   done     trial 0          3 picks
+Check totals: post_grasp pass: 34, post_place pass: 34, pre_pick pass: 36
+
+Client log (run.py output; image/speed lines removed, private links redacted)
+=== start 1 19:28:41
+2026-10-29 19:28:42,706 INFO request q560ef1 approved: run r20261030-96b938
+2026-10-29 19:28:42,708 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-29 19:28:47,992 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-29 19:28:47,992 INFO TwinCheck guide mode, session real_s3_guide_v4, 3 jobs per rollout
+2026-10-29 19:29:09,251 INFO cell clock offset -1.762 s, round trip 103 ms
+2026-10-29 19:29:09,415 INFO trial r20261030-96b938-t00 (layout L1) running
+2026-10-29 19:29:20,284 INFO trial 1 trial 
+2026-10-29 19:29:20,286 INFO trial 1 decision object on the pick point
+2026-10-29 19:29:36,683 INFO trial 1 decision object held
+2026-10-29 19:29:48,536 INFO trial 1 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:29:48,536 INFO trial 2 trial 
+2026-10-29 19:29:48,536 INFO trial 2 decision object on the pick point
+2026-10-29 19:30:04,888 INFO trial 2 decision object held
+2026-10-29 19:30:17,722 INFO trial 2 decision screw in bin_screws
+2026-10-29 19:30:17,722 INFO trial 3 trial 
+2026-10-29 19:30:17,722 INFO trial 3 decision object on the pick point
+2026-10-29 19:30:33,421 INFO trial 3 decision object held
+2026-10-29 19:30:46,197 INFO trial 3 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:30:46,197 INFO trial 0 done 3 picks
+2026-10-29 19:35:39,971 WARNING POST /actions: no trial is running (robot homing)
+2026-10-29 19:35:40,078 INFO trial r20261030-96b938-t00 ended
+2026-10-29 19:36:38,241 INFO cell clock offset -1.756 s, round trip 102 ms
+2026-10-29 19:36:38,354 INFO trial r20261030-96b938-t01 (layout L1) running
+2026-10-29 19:36:44,815 INFO trial 4 trial 
+2026-10-29 19:36:44,815 INFO trial 4 decision object on the pick point
+2026-10-29 19:37:01,059 INFO trial 4 decision object held
+2026-10-29 19:37:13,172 INFO trial 4 decision cube in bin_cubes
+2026-10-29 19:37:13,172 INFO trial 5 trial 
+2026-10-29 19:37:13,172 INFO trial 5 decision object on the pick point
+2026-10-29 19:37:29,237 INFO trial 5 decision object held
+2026-10-29 19:37:41,531 INFO trial 5 decision screw in bin_screws
+2026-10-29 19:37:41,531 INFO trial 6 trial 
+2026-10-29 19:37:41,531 INFO trial 6 decision object on the pick point
+2026-10-29 19:37:58,150 INFO trial 6 decision object held
+2026-10-29 19:38:10,456 INFO trial 6 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:38:10,457 INFO trial 0 done 3 picks
+2026-10-29 19:39:47,051 WARNING POST /actions: no trial is running (robot idle)
+2026-10-29 19:39:47,244 INFO trial r20261030-96b938-t01 ended
+2026-10-29 19:39:48,424 INFO cell clock offset -1.698 s, round trip 120 ms
+2026-10-29 19:39:48,553 INFO trial r20261030-96b938-t02 (layout L1) running
+2026-10-29 19:39:54,436 INFO trial 7 trial 
+2026-10-29 19:39:54,436 INFO trial 7 decision object on the pick point
+2026-10-29 19:40:10,623 INFO trial 7 decision object held
+2026-10-29 19:40:23,146 INFO trial 7 decision cube in bin_cubes
+2026-10-29 19:40:23,146 INFO trial 8 trial 
+2026-10-29 19:40:23,146 INFO trial 8 decision object on the pick point
+2026-10-29 19:40:40,019 INFO trial 8 decision object held
+2026-10-29 19:40:52,967 INFO trial 8 decision screw in bin_screws
+2026-10-29 19:40:52,967 INFO trial 9 trial 
+2026-10-29 19:40:52,967 INFO trial 9 decision object on the pick point
+2026-10-29 19:41:09,094 INFO trial 9 decision object held
+2026-10-29 19:41:21,404 INFO trial 9 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:41:21,404 INFO trial 0 done 3 picks
+2026-10-29 19:41:44,827 INFO trial r20261030-96b938-t02 ended
+2026-10-29 19:43:17,092 INFO cell clock offset -1.692 s, round trip 102 ms
+2026-10-29 19:43:17,214 INFO trial r20261030-96b938-t03 (layout L1) running
+2026-10-29 19:43:24,342 INFO trial 10 trial 
+2026-10-29 19:43:24,343 INFO trial 10 decision object on the pick point
+2026-10-29 19:43:41,491 INFO trial 10 decision object held
+2026-10-29 19:43:54,589 INFO trial 10 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:43:54,591 INFO trial 11 trial 
+2026-10-29 19:43:54,591 INFO trial 11 decision object on the pick point
+2026-10-29 19:44:10,998 INFO trial 11 decision object held
+2026-10-29 19:44:24,099 INFO trial 11 decision screw in bin_screws
+2026-10-29 19:44:24,099 INFO trial 12 trial 
+2026-10-29 19:44:24,099 INFO trial 12 decision object on the pick point
+2026-10-29 19:44:40,893 INFO trial 12 decision object held
+2026-10-29 19:44:53,772 INFO trial 12 decision cube in bin_cubes
+2026-10-29 19:44:53,772 INFO trial 0 done 3 picks
+2026-10-29 19:44:59,725 INFO trial r20261030-96b938-t03 ended
+2026-10-29 19:46:38,306 INFO cell clock offset -1.706 s, round trip 103 ms
+2026-10-29 19:46:38,408 INFO trial r20261030-96b938-t04 (layout L1) running
+2026-10-29 19:46:44,385 INFO trial 13 trial 
+2026-10-29 19:46:44,385 INFO trial 13 decision object on the pick point
+2026-10-29 19:46:59,838 INFO trial 13 decision object held
+2026-10-29 19:47:12,223 INFO trial 13 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:47:12,223 INFO trial 14 trial 
+2026-10-29 19:47:12,223 INFO trial 14 decision object on the pick point
+2026-10-29 19:47:28,293 INFO trial 14 decision object held
+2026-10-29 19:47:41,099 INFO trial 14 decision screw in bin_screws (seen as cube)
+2026-10-29 19:47:41,099 INFO trial 15 trial 
+2026-10-29 19:47:41,099 INFO trial 15 decision object on the pick point
+2026-10-29 19:47:49,977 WARNING POST /actions: no trial is running (robot fault)
+2026-10-29 19:47:50,091 INFO trial r20261030-96b938-t04 ended
+2026-10-29 19:49:45,807 INFO cell clock offset -1.687 s, round trip 102 ms
+2026-10-29 19:49:45,907 INFO trial r20261030-96b938-t05 (layout L1) running
+2026-10-29 19:49:52,389 INFO trial 16 trial 
+2026-10-29 19:49:52,389 INFO trial 16 decision object on the pick point
+2026-10-29 19:50:08,927 INFO trial 16 decision object held
+2026-10-29 19:50:21,383 INFO trial 16 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:50:21,383 INFO trial 17 trial 
+2026-10-29 19:50:21,384 INFO trial 17 decision object on the pick point
+2026-10-29 19:50:37,707 INFO trial 17 decision object held
+2026-10-29 19:50:50,615 INFO trial 17 decision screw in bin_screws
+2026-10-29 19:50:50,616 INFO trial 18 trial 
+2026-10-29 19:50:50,616 INFO trial 18 decision object on the pick point
+2026-10-29 19:51:06,824 INFO trial 18 decision object held
+2026-10-29 19:51:19,188 INFO trial 18 decision cube in bin_cubes
+2026-10-29 19:51:19,189 INFO trial 0 done 3 picks
+2026-10-29 19:51:25,218 WARNING POST /actions: no trial is running (robot homing)
+2026-10-29 19:51:25,337 INFO trial r20261030-96b938-t05 ended
+2026-10-29 19:52:58,267 INFO cell clock offset -1.654 s, round trip 116 ms
+2026-10-29 19:52:58,417 INFO trial r20261030-96b938-t06 (layout L1) running
+2026-10-29 19:53:05,088 INFO trial 19 trial 
+2026-10-29 19:53:05,088 INFO trial 19 decision object on the pick point
+2026-10-29 19:53:21,937 INFO trial 19 decision object held
+2026-10-29 19:53:34,227 INFO trial 19 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:53:34,228 INFO trial 20 trial 
+2026-10-29 19:53:34,228 INFO trial 20 decision object on the pick point
+2026-10-29 19:53:51,470 INFO trial 20 decision object held
+2026-10-29 19:54:04,424 INFO trial 20 decision screw in bin_screws
+2026-10-29 19:54:04,425 INFO trial 21 trial 
+2026-10-29 19:54:04,425 INFO trial 21 decision object on the pick point
+2026-10-29 19:54:20,394 INFO trial 21 decision object held
+2026-10-29 19:54:32,889 INFO trial 21 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:54:32,890 INFO trial 0 done 3 picks
+2026-10-29 19:54:33,451 INFO trial r20261030-96b938-t06 ended
+2026-10-29 19:56:14,528 INFO cell clock offset -1.651 s, round trip 102 ms
+2026-10-29 19:56:14,620 INFO trial r20261030-96b938-t07 (layout L1) running
+2026-10-29 19:56:20,929 INFO trial 22 trial 
+2026-10-29 19:56:20,929 INFO trial 22 decision object on the pick point
+2026-10-29 19:56:37,102 INFO trial 22 decision object held
+2026-10-29 19:56:49,785 INFO trial 22 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 19:56:49,785 INFO trial 23 trial 
+2026-10-29 19:56:49,786 INFO trial 23 decision object on the pick point
+2026-10-29 19:57:05,481 INFO trial 23 decision object held
+2026-10-29 19:57:17,751 INFO trial 23 decision screw in bin_screws
+2026-10-29 19:57:17,751 INFO trial 24 trial 
+2026-10-29 19:57:17,752 INFO trial 24 decision object on the pick point
+2026-10-29 19:57:26,402 INFO trial r20261030-96b938-t07 ended
+2026-10-29 19:59:50,687 INFO cell clock offset -1.651 s, round trip 103 ms
+2026-10-29 19:59:50,764 INFO trial r20261030-96b938-t08 (layout L1) running
+2026-10-29 19:59:57,186 INFO trial 25 trial 
+2026-10-29 19:59:57,186 INFO trial 25 decision object on the pick point
+2026-10-29 20:00:13,173 INFO trial 25 decision object held
+2026-10-29 20:00:25,664 INFO trial 25 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 20:00:25,664 INFO trial 26 trial 
+2026-10-29 20:00:25,665 INFO trial 26 decision object on the pick point
+2026-10-29 20:00:42,342 INFO trial 26 decision object held
+2026-10-29 20:00:55,662 INFO trial 26 decision screw in bin_screws
+2026-10-29 20:00:55,664 INFO trial 27 trial 
+2026-10-29 20:00:55,664 INFO trial 27 decision object on the pick point
+2026-10-29 20:01:12,175 INFO trial 27 decision object held
+2026-10-29 20:01:24,936 INFO trial 27 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 20:01:24,937 INFO trial 0 done 3 picks
+2026-10-29 20:01:44,962 WARNING POST /actions: no trial is running (robot homing)
+2026-10-29 20:01:45,170 INFO trial r20261030-96b938-t08 ended
+2026-10-29 20:02:32,374 INFO cell clock offset -1.646 s, round trip 88 ms
+2026-10-29 20:02:32,476 INFO trial r20261030-96b938-t04 (layout L1) running
+2026-10-29 20:02:39,075 INFO trial 28 trial 
+2026-10-29 20:02:39,075 INFO trial 28 decision object on the pick point
+2026-10-29 20:02:55,680 INFO trial 28 decision object held
+2026-10-29 20:03:08,475 INFO trial 28 decision cube in bin_cubes
+2026-10-29 20:03:08,476 INFO trial 29 trial 
+2026-10-29 20:03:08,476 INFO trial 29 decision object on the pick point
+2026-10-29 20:03:24,996 INFO trial 29 decision object held
+2026-10-29 20:03:37,789 INFO trial 29 decision screw in bin_screws
+2026-10-29 20:03:37,790 INFO trial 30 trial 
+2026-10-29 20:03:37,790 INFO trial 30 decision object on the pick point
+2026-10-29 20:03:54,152 INFO trial 30 decision object held
+2026-10-29 20:04:06,639 INFO trial 30 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 20:04:06,640 INFO trial 0 done 3 picks
+2026-10-29 20:04:14,468 WARNING POST /actions: no trial is running (robot homing)
+2026-10-29 20:04:14,571 INFO trial r20261030-96b938-t04 ended
+2026-10-29 20:05:16,830 INFO cell clock offset -1.643 s, round trip 104 ms
+2026-10-29 20:05:17,006 INFO trial r20261030-96b938-t07 (layout L1) running
+2026-10-29 20:05:23,465 INFO trial 31 trial 
+2026-10-29 20:05:23,465 INFO trial 31 decision object on the pick point
+2026-10-29 20:05:38,972 INFO trial 31 decision object held
+2026-10-29 20:05:51,453 INFO trial 31 decision cube in bin_cubes
+2026-10-29 20:05:51,453 INFO trial 32 trial 
+2026-10-29 20:05:51,453 INFO trial 32 decision object on the pick point
+2026-10-29 20:06:07,334 INFO trial 32 decision object held
+2026-10-29 20:06:20,622 INFO trial 32 decision screw in bin_screws
+2026-10-29 20:06:20,622 INFO trial 33 trial 
+2026-10-29 20:06:20,622 INFO trial 33 decision object on the pick point
+2026-10-29 20:06:36,856 INFO trial 33 decision object held
+2026-10-29 20:06:49,697 INFO trial 33 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 20:06:49,697 INFO trial 0 done 3 picks
+2026-10-29 20:06:52,881 WARNING POST /actions: no trial is running (robot homing)
+2026-10-29 20:06:52,986 INFO trial r20261030-96b938-t07 ended
+2026-10-29 20:07:57,197 INFO cell clock offset -1.623 s, round trip 105 ms
+2026-10-29 20:07:57,397 INFO trial r20261030-96b938-t09 (layout L1) running
+2026-10-29 20:08:04,271 INFO trial 34 trial 
+2026-10-29 20:08:04,271 INFO trial 34 decision object on the pick point
+2026-10-29 20:08:20,553 INFO trial 34 decision object held
+2026-10-29 20:08:33,138 INFO trial 34 decision cube in bin_cubes
+2026-10-29 20:08:33,138 INFO trial 35 trial 
+2026-10-29 20:08:33,138 INFO trial 35 decision object on the pick point
+2026-10-29 20:08:50,015 INFO trial 35 decision object held
+2026-10-29 20:09:03,337 INFO trial 35 decision screw in bin_screws
+2026-10-29 20:09:03,337 INFO trial 36 trial 
+2026-10-29 20:09:03,337 INFO trial 36 decision object on the pick point
+2026-10-29 20:09:19,154 INFO trial 36 decision object held
+2026-10-29 20:09:31,490 INFO trial 36 decision cube left the table and is not on it: in bin_cubes, hidden by the parts already there
+2026-10-29 20:09:31,490 INFO trial 0 done 3 picks
+2026-10-29 20:09:35,596 WARNING POST /actions: no trial is running (robot homing)
+2026-10-29 20:09:35,702 INFO trial r20261030-96b938-t09 ended
+2026-10-29 20:09:36,280 INFO all trials finished

@@ -1,0 +1,363 @@
+TwinCheck - blind baseline logs (Team Wicked)
+Written 2026-10-30 19:07. Mode: watch (blind fixed-spot motion; cameras only check and alert).
+Same 10 layouts as the Guide runs (submission/placement.yaml, nudged up to 30 mm, seed 30).
+Real data: test and analysis only, never training.
+
+====================================================================================================
+RUN r20261030-dcd07a   request qdf305c   policy TwinCheck-blind-baseline-v2
+MAIN BASELINE (use for results): wrist fix in place (park R 105).
+====================================================================================================
+
+Official recording (LeRobotDataset): end reason per rollout
+ ep rollout                end reason          length  wrist J6 range (deg)   last fingertip x,y,z (mm)
+  0 r20261030-dcd07a-t00   controller fault       50s       -0 .. 209         421, 0, -326
+  1 r20261030-dcd07a-t01   controller fault       78s       -0 .. 210         382, 101, -325
+  2 r20261030-dcd07a-t02   controller fault       14s       -0 .. 209         380, -100, -325
+  3 r20261030-dcd07a-t03   operator               93s       -0 .. 210         170, -330, -60
+  4 r20261030-dcd07a-t04   controller fault       14s       -0 .. 209         380, -100, -328
+  5 r20261030-dcd07a-t05   operator               96s       -0 .. 209         170, -330, -60
+  6 r20261030-dcd07a-t06   operator               97s       -0 .. 209         170, -330, -60
+  7 r20261030-dcd07a-t07   controller fault       43s       -0 .. 209         420, 0, -325
+  8 r20261030-dcd07a-t08   controller fault       13s       -0 .. 209         380, -100, -328
+  9 r20261030-dcd07a-t09   controller fault       14s       -0 .. 210         380, -100, -323
+Totals: 10 recorded rollouts; controller faults 7; ended by operator 3
+
+TwinCheck checks per rollout (pre_pick / post_grasp / post_place)
+18:50:19  r20261030-dcd07a-t00   trial    trial 1   cube      aim [380.0, -100.0, 0.0]
+18:50:19  r20261030-dcd07a-t00   decision trial 1   cube   pre_pick   FAIL  cube is off the pick point by 23 mm, 45 deg; this pick will likely miss   [camera saw [376.5, -77.7, 45.2]]
+18:50:36  r20261030-dcd07a-t00   decision trial 1   cube   post_grasp FAIL  missed grasp: gripper is empty
+18:50:49  r20261030-dcd07a-t00   decision trial 1   cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:50:49  r20261030-dcd07a-t00   trial    trial 2   screw     aim [420.0, 0.0, 0.0]
+18:50:49  r20261030-dcd07a-t00   decision trial 2   screw  pre_pick   FAIL  screw is off the pick point by 21 mm, 1 deg; this pick will likely miss   [camera saw [437.3, 12.0, 1.0]]
+18:51:59  r20261030-dcd07a-t01   trial    trial 3   cube      aim [380.0, -100.0, 0.0]
+18:51:59  r20261030-dcd07a-t01   decision trial 3   cube   pre_pick   FAIL  cube is off the pick point by 27 mm, 12 deg; this pick will likely miss   [camera saw [407.4, -98.6, 12.1]]
+18:52:16  r20261030-dcd07a-t01   decision trial 3   cube   post_grasp FAIL  missed grasp: gripper is empty
+18:52:30  r20261030-dcd07a-t01   decision trial 3   cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:52:30  r20261030-dcd07a-t01   trial    trial 4   screw     aim [420.0, 0.0, 0.0]
+18:52:30  r20261030-dcd07a-t01   decision trial 4   screw  pre_pick   FAIL  screw is off the pick point by 25 mm, 27 deg; this pick will likely miss   [camera saw [444.7, 5.0, 153.3]]
+18:52:48  r20261030-dcd07a-t01   decision trial 4   screw  post_grasp FAIL  missed grasp: gripper is empty
+18:53:01  r20261030-dcd07a-t01   decision trial 4   screw  post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:53:01  r20261030-dcd07a-t01   trial    trial 5   cube      aim [380.0, 100.0, 0.0]
+18:53:01  r20261030-dcd07a-t01   decision trial 5   cube   pre_pick   FAIL  cube is off the pick point by 22 mm, 23 deg; this pick will likely miss   [camera saw [365.5, 83.4, 23.4]]
+18:54:19  r20261030-dcd07a-t02   trial    trial 6   cube      aim [380.0, -100.0, 0.0]
+18:54:19  r20261030-dcd07a-t02   decision trial 6   cube   pre_pick   FAIL  cube is off the pick point by 25 mm, 30 deg; this pick will likely miss   [camera saw [368.8, -122.2, 29.7]]
+18:55:10  r20261030-dcd07a-t03   trial    trial 7   cube      aim [380.0, -100.0, 0.0]
+18:55:10  r20261030-dcd07a-t03   decision trial 7   cube   pre_pick   FAIL  cube is off the pick point by 26 mm, 43 deg; this pick will likely miss   [camera saw [367.6, -122.4, 43.4]]
+18:55:27  r20261030-dcd07a-t03   decision trial 7   cube   post_grasp FAIL  missed grasp: gripper is empty
+18:55:39  r20261030-dcd07a-t03   decision trial 7   cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:55:39  r20261030-dcd07a-t03   trial    trial 8   screw     aim [420.0, 0.0, 0.0]
+18:55:39  r20261030-dcd07a-t03   decision trial 8   screw  pre_pick   FAIL  screw is off the pick point by 5 mm, 16 deg; this pick will likely miss   [camera saw [421.8, -4.7, 163.8]]
+18:55:55  r20261030-dcd07a-t03   decision trial 8   screw  post_grasp PASS  object held
+18:56:08  r20261030-dcd07a-t03   decision trial 8   screw  post_place PASS  screw in bin_screws   [camera saw [393.1, 229.5, 36.5]]
+18:56:08  r20261030-dcd07a-t03   trial    trial 9   cube      aim [380.0, 100.0, 0.0]
+18:56:08  r20261030-dcd07a-t03   decision trial 9   cube   pre_pick   FAIL  cube is off the pick point by 31 mm, 12 deg; this pick will likely miss   [camera saw [403.8, 79.9, 11.8]]
+18:56:25  r20261030-dcd07a-t03   decision trial 9   cube   post_grasp FAIL  missed grasp: gripper is empty
+18:56:37  r20261030-dcd07a-t03   decision trial 9   cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:56:37  r20261030-dcd07a-t03   done     trial 0          3 picks
+18:57:25  r20261030-dcd07a-t04   trial    trial 10  cube      aim [380.0, -100.0, 0.0]
+18:57:25  r20261030-dcd07a-t04   decision trial 10  cube   pre_pick   FAIL  cube is off the pick point by 7 mm, 34 deg; this pick will likely miss   [camera saw [383.4, -93.3, 56.5]]
+18:58:33  r20261030-dcd07a-t05   trial    trial 11  cube      aim [380.0, -100.0, 0.0]
+18:58:33  r20261030-dcd07a-t05   decision trial 11  cube   pre_pick   FAIL  cube is off the pick point by 18 mm, 32 deg; this pick will likely miss   [camera saw [361.8, -102.3, 31.8]]
+18:58:50  r20261030-dcd07a-t05   decision trial 11  cube   post_grasp FAIL  missed grasp: gripper is empty
+18:59:03  r20261030-dcd07a-t05   decision trial 11  cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:59:03  r20261030-dcd07a-t05   trial    trial 12  screw     aim [420.0, 0.0, 0.0]
+18:59:03  r20261030-dcd07a-t05   decision trial 12  screw  pre_pick   FAIL  screw is off the pick point by 21 mm, 38 deg; this pick will likely miss   [camera saw [401.5, -10.8, 142.3]]
+18:59:20  r20261030-dcd07a-t05   decision trial 12  screw  post_grasp FAIL  missed grasp: gripper is empty
+18:59:32  r20261030-dcd07a-t05   decision trial 12  screw  post_place FAIL  nothing placed: the grasp check found the gripper empty
+18:59:32  r20261030-dcd07a-t05   trial    trial 13  cube      aim [380.0, 100.0, 0.0]
+18:59:32  r20261030-dcd07a-t05   decision trial 13  cube   pre_pick   FAIL  cube is off the pick point by 33 mm, 22 deg; this pick will likely miss   [camera saw [411.2, 88.5, 21.7]]
+18:59:48  r20261030-dcd07a-t05   decision trial 13  cube   post_grasp FAIL  missed grasp: gripper is empty
+19:00:01  r20261030-dcd07a-t05   decision trial 13  cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+19:00:01  r20261030-dcd07a-t05   done     trial 0          3 picks
+19:00:47  r20261030-dcd07a-t06   trial    trial 14  cube      aim [380.0, -100.0, 0.0]
+19:00:47  r20261030-dcd07a-t06   decision trial 14  cube   pre_pick   FAIL  cube is off the pick point by 28 mm, 12 deg; this pick will likely miss   [camera saw [406.6, -107.9, 78.3]]
+19:01:03  r20261030-dcd07a-t06   decision trial 14  cube   post_grasp FAIL  missed grasp: gripper is empty
+19:01:15  r20261030-dcd07a-t06   decision trial 14  cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+19:01:15  r20261030-dcd07a-t06   trial    trial 15  screw     aim [420.0, 0.0, 0.0]
+19:01:15  r20261030-dcd07a-t06   decision trial 15  screw  pre_pick   FAIL  screw is off the pick point by 12 mm, 15 deg; this pick will likely miss   [camera saw [424.8, -11.4, 15.5]]
+19:01:32  r20261030-dcd07a-t06   decision trial 15  screw  post_grasp FAIL  missed grasp: gripper is empty
+19:01:44  r20261030-dcd07a-t06   decision trial 15  screw  post_place FAIL  nothing placed: the grasp check found the gripper empty
+19:01:44  r20261030-dcd07a-t06   trial    trial 16  cube      aim [380.0, 100.0, 0.0]
+19:01:44  r20261030-dcd07a-t06   decision trial 16  cube   pre_pick   FAIL  cube is off the pick point by 31 mm, 5 deg; this pick will likely miss   [camera saw [398.6, 75.3, 85.5]]
+19:01:59  r20261030-dcd07a-t06   decision trial 16  cube   post_grasp FAIL  missed grasp: gripper is empty
+19:02:11  r20261030-dcd07a-t06   decision trial 16  cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+19:02:11  r20261030-dcd07a-t06   done     trial 0          3 picks
+19:03:01  r20261030-dcd07a-t07   trial    trial 17  cube      aim [380.0, -100.0, 0.0]
+19:03:01  r20261030-dcd07a-t07   decision trial 17  cube   pre_pick   FAIL  cube is off the pick point by 22 mm, 10 deg; this pick will likely miss   [camera saw [386.8, -79.0, 80.3]]
+19:03:17  r20261030-dcd07a-t07   decision trial 17  cube   post_grasp FAIL  missed grasp: gripper is empty
+19:03:29  r20261030-dcd07a-t07   decision trial 17  cube   post_place FAIL  nothing placed: the grasp check found the gripper empty
+19:03:29  r20261030-dcd07a-t07   trial    trial 18  screw     aim [420.0, 0.0, 0.0]
+19:03:29  r20261030-dcd07a-t07   decision trial 18  screw  pre_pick   FAIL  screw is off the pick point by 13 mm, 7 deg; this pick will likely miss   [camera saw [412.3, 10.1, 7.1]]
+19:05:13  r20261030-dcd07a-t08   trial    trial 19  cube      aim [380.0, -100.0, 0.0]
+19:05:13  r20261030-dcd07a-t08   decision trial 19  cube   pre_pick   FAIL  cube is off the pick point by 20 mm, 13 deg; this pick will likely miss   [camera saw [368.5, -83.1, 12.9]]
+19:06:10  r20261030-dcd07a-t09   trial    trial 20  cube      aim [380.0, -100.0, 0.0]
+19:06:10  r20261030-dcd07a-t09   decision trial 20  cube   pre_pick   FAIL  cube is off the pick point by 21 mm, 17 deg; this pick will likely miss   [camera saw [371.6, -80.5, 16.6]]
+Check totals: post_grasp fail: 12, post_grasp pass: 1, post_place fail: 12, post_place pass: 1, pre_pick fail: 20
+
+Client log (run.py output; image/speed lines removed, private links redacted)
+=== start 1 16:47:38
+2026-10-30 16:47:39,234 INFO request qdf305c is waiting for the operator's approval ...
+2026-10-30 16:47:54,395 INFO request qdf305c is waiting for the operator's approval ...
+2026-10-30 16:48:09,535 INFO request qdf305c is waiting for the operator's approval ...
+2026-10-30 16:48:24,606 INFO request qdf305c is waiting for the operator's approval ...
+2026-10-30 16:48:39,756 INFO request qdf305c is waiting for the operator's approval ...
+2026-10-30 16:48:55,134 INFO request qdf305c is waiting for the operator's approval ...
+2026-10-30 16:49:10,275 INFO request qdf305c approved: run r20261030-dcd07a
+2026-10-30 16:49:10,277 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-30 16:49:13,008 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-30 16:49:13,008 INFO TwinCheck watch mode, session real_s5_blind_v2, 3 jobs per rollout
+=== start 1 17:18:35
+2026-10-30 17:18:37,097 INFO request qdf305c approved: run r20261030-dcd07a
+2026-10-30 17:18:37,097 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-30 17:18:40,017 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-30 17:18:40,017 INFO TwinCheck watch mode, session real_s5_blind_v2, 3 jobs per rollout
+error: the cell is offline; try again later
+=== start 2 18:27:26
+error: the cell is offline; try again later
+=== start 3 18:27:32
+error: the cell is offline; try again later
+=== start 4 18:27:36
+2026-10-30 18:27:36,848 INFO request qdf305c approved: run r20261030-dcd07a
+2026-10-30 18:27:36,848 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-30 18:27:42,939 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-30 18:27:42,939 INFO TwinCheck watch mode, session real_s5_blind_v2, 3 jobs per rollout
+2026-10-30 18:50:07,115 INFO cell clock offset +0.711 s, round trip 102 ms
+2026-10-30 18:50:07,296 INFO trial r20261030-dcd07a-t00 (layout L1) running
+2026-10-30 18:50:19,656 INFO trial 1 trial 
+2026-10-30 18:50:19,656 WARNING trial 1 decision cube is off the pick point by 23 mm, 45 deg; this pick will likely miss
+2026-10-30 18:50:36,253 WARNING trial 1 decision missed grasp: gripper is empty
+2026-10-30 18:50:49,226 WARNING trial 1 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:50:49,226 INFO trial 2 trial 
+2026-10-30 18:50:49,226 WARNING trial 2 decision screw is off the pick point by 21 mm, 1 deg; this pick will likely miss
+2026-10-30 18:50:56,879 INFO trial r20261030-dcd07a-t00 ended
+2026-10-30 18:51:52,268 INFO cell clock offset +0.739 s, round trip 104 ms
+2026-10-30 18:51:52,369 INFO trial r20261030-dcd07a-t01 (layout L1) running
+2026-10-30 18:51:59,338 INFO trial 3 trial 
+2026-10-30 18:51:59,338 WARNING trial 3 decision cube is off the pick point by 27 mm, 12 deg; this pick will likely miss
+2026-10-30 18:52:16,645 WARNING trial 3 decision missed grasp: gripper is empty
+2026-10-30 18:52:30,027 WARNING trial 3 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:52:30,028 INFO trial 4 trial 
+2026-10-30 18:52:30,028 WARNING trial 4 decision screw is off the pick point by 25 mm, 27 deg; this pick will likely miss
+2026-10-30 18:52:48,160 WARNING trial 4 decision missed grasp: gripper is empty
+2026-10-30 18:53:01,128 WARNING trial 4 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:53:01,128 INFO trial 5 trial 
+2026-10-30 18:53:01,129 WARNING trial 5 decision cube is off the pick point by 22 mm, 23 deg; this pick will likely miss
+2026-10-30 18:53:10,510 INFO trial r20261030-dcd07a-t01 ended
+2026-10-30 18:54:12,745 INFO cell clock offset +0.723 s, round trip 102 ms
+2026-10-30 18:54:12,862 INFO trial r20261030-dcd07a-t02 (layout L1) running
+2026-10-30 18:54:19,077 INFO trial 6 trial 
+2026-10-30 18:54:19,077 WARNING trial 6 decision cube is off the pick point by 25 mm, 30 deg; this pick will likely miss
+2026-10-30 18:54:26,494 INFO trial r20261030-dcd07a-t02 ended
+2026-10-30 18:55:04,473 INFO cell clock offset +0.714 s, round trip 205 ms
+2026-10-30 18:55:04,577 INFO trial r20261030-dcd07a-t03 (layout L1) running
+2026-10-30 18:55:10,723 INFO trial 7 trial 
+2026-10-30 18:55:10,724 WARNING trial 7 decision cube is off the pick point by 26 mm, 43 deg; this pick will likely miss
+2026-10-30 18:55:27,386 WARNING trial 7 decision missed grasp: gripper is empty
+2026-10-30 18:55:39,789 WARNING trial 7 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:55:39,790 INFO trial 8 trial 
+2026-10-30 18:55:39,790 WARNING trial 8 decision screw is off the pick point by 5 mm, 16 deg; this pick will likely miss
+2026-10-30 18:55:55,974 INFO trial 8 decision object held
+2026-10-30 18:56:08,996 INFO trial 8 decision screw in bin_screws
+2026-10-30 18:56:08,996 INFO trial 9 trial 
+2026-10-30 18:56:08,996 WARNING trial 9 decision cube is off the pick point by 31 mm, 12 deg; this pick will likely miss
+2026-10-30 18:56:25,236 WARNING trial 9 decision missed grasp: gripper is empty
+2026-10-30 18:56:37,359 WARNING trial 9 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:56:37,359 INFO trial 0 done 3 picks
+2026-10-30 18:56:37,459 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 18:56:37,661 INFO trial r20261030-dcd07a-t03 ended
+2026-10-30 18:57:18,619 INFO cell clock offset +0.713 s, round trip 194 ms
+2026-10-30 18:57:18,823 INFO trial r20261030-dcd07a-t04 (layout L1) running
+2026-10-30 18:57:25,046 INFO trial 10 trial 
+2026-10-30 18:57:25,047 WARNING trial 10 decision cube is off the pick point by 7 mm, 34 deg; this pick will likely miss
+2026-10-30 18:57:32,553 INFO trial r20261030-dcd07a-t04 ended
+2026-10-30 18:58:27,636 INFO cell clock offset +0.734 s, round trip 103 ms
+2026-10-30 18:58:27,704 INFO trial r20261030-dcd07a-t05 (layout L1) running
+2026-10-30 18:58:33,875 INFO trial 11 trial 
+2026-10-30 18:58:33,875 WARNING trial 11 decision cube is off the pick point by 18 mm, 32 deg; this pick will likely miss
+2026-10-30 18:58:50,637 WARNING trial 11 decision missed grasp: gripper is empty
+2026-10-30 18:59:03,289 WARNING trial 11 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:59:03,289 INFO trial 12 trial 
+2026-10-30 18:59:03,290 WARNING trial 12 decision screw is off the pick point by 21 mm, 38 deg; this pick will likely miss
+2026-10-30 18:59:20,237 WARNING trial 12 decision missed grasp: gripper is empty
+2026-10-30 18:59:32,969 WARNING trial 12 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 18:59:32,970 INFO trial 13 trial 
+2026-10-30 18:59:32,971 WARNING trial 13 decision cube is off the pick point by 33 mm, 22 deg; this pick will likely miss
+2026-10-30 18:59:48,827 WARNING trial 13 decision missed grasp: gripper is empty
+2026-10-30 19:00:01,131 WARNING trial 13 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 19:00:01,131 INFO trial 0 done 3 picks
+2026-10-30 19:00:04,301 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:00:04,405 INFO trial r20261030-dcd07a-t05 ended
+2026-10-30 19:00:41,170 INFO cell clock offset +0.723 s, round trip 103 ms
+2026-10-30 19:00:41,268 INFO trial r20261030-dcd07a-t06 (layout L1) running
+2026-10-30 19:00:47,896 INFO trial 14 trial 
+2026-10-30 19:00:47,896 WARNING trial 14 decision cube is off the pick point by 28 mm, 12 deg; this pick will likely miss
+2026-10-30 19:01:03,650 WARNING trial 14 decision missed grasp: gripper is empty
+2026-10-30 19:01:15,669 WARNING trial 14 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 19:01:15,670 INFO trial 15 trial 
+2026-10-30 19:01:15,670 WARNING trial 15 decision screw is off the pick point by 12 mm, 15 deg; this pick will likely miss
+2026-10-30 19:01:32,315 WARNING trial 15 decision missed grasp: gripper is empty
+2026-10-30 19:01:44,516 WARNING trial 15 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 19:01:44,517 INFO trial 16 trial 
+2026-10-30 19:01:44,517 WARNING trial 16 decision cube is off the pick point by 31 mm, 5 deg; this pick will likely miss
+2026-10-30 19:01:59,779 WARNING trial 16 decision missed grasp: gripper is empty
+2026-10-30 19:02:11,742 WARNING trial 16 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 19:02:11,743 INFO trial 0 done 3 picks
+2026-10-30 19:02:18,038 WARNING POST /actions: no trial is running (robot homing)
+2026-10-30 19:02:18,145 INFO trial r20261030-dcd07a-t06 ended
+2026-10-30 19:02:54,594 INFO cell clock offset +0.730 s, round trip 103 ms
+2026-10-30 19:02:54,704 INFO trial r20261030-dcd07a-t07 (layout L1) running
+2026-10-30 19:03:01,130 INFO trial 17 trial 
+2026-10-30 19:03:01,131 WARNING trial 17 decision cube is off the pick point by 22 mm, 10 deg; this pick will likely miss
+2026-10-30 19:03:17,290 WARNING trial 17 decision missed grasp: gripper is empty
+2026-10-30 19:03:29,372 WARNING trial 17 decision nothing placed: the grasp check found the gripper empty
+2026-10-30 19:03:29,373 INFO trial 18 trial 
+2026-10-30 19:03:29,373 WARNING trial 18 decision screw is off the pick point by 13 mm, 7 deg; this pick will likely miss
+2026-10-30 19:03:37,506 INFO trial r20261030-dcd07a-t07 ended
+2026-10-30 19:05:06,589 INFO cell clock offset +0.733 s, round trip 103 ms
+2026-10-30 19:05:06,702 INFO trial r20261030-dcd07a-t08 (layout L1) running
+2026-10-30 19:05:13,052 INFO trial 19 trial 
+2026-10-30 19:05:13,053 WARNING trial 19 decision cube is off the pick point by 20 mm, 13 deg; this pick will likely miss
+2026-10-30 19:05:19,820 INFO trial r20261030-dcd07a-t08 ended
+2026-10-30 19:06:03,219 INFO cell clock offset +0.717 s, round trip 102 ms
+2026-10-30 19:06:03,420 INFO trial r20261030-dcd07a-t09 (layout L1) running
+2026-10-30 19:06:10,070 INFO trial 20 trial 
+2026-10-30 19:06:10,071 WARNING trial 20 decision cube is off the pick point by 21 mm, 17 deg; this pick will likely miss
+2026-10-30 19:06:17,158 INFO trial r20261030-dcd07a-t09 ended
+2026-10-30 19:06:33,822 INFO all trials finished
+
+====================================================================================================
+RUN r20261030-24814d   request q3135b9   policy TwinCheck-blind-baseline
+FIRST BASELINE (do not use for results): 5 of its faults were the wrist wind-up bug, fixed afterwards.
+====================================================================================================
+
+Official recording (LeRobotDataset): end reason per rollout
+ ep rollout                end reason          length  wrist J6 range (deg)   last fingertip x,y,z (mm)
+  0 r20261030-24814d-t00   controller fault       41s     -354 .. 63          223, -260, -95
+  1 r20261030-24814d-t00   operator               30s     -298 .. 63          224, -33, -150
+  2 r20261030-24814d-t02   controller fault       36s     -359 .. 63          228, -254, -98
+  3 r20261030-24814d-t03   controller fault       36s     -354 .. 63          223, -260, -95
+  4 r20261030-24814d-t04   controller fault       14s     -165 .. 63          382, -100, -326
+  5 r20261030-24814d-t05   controller fault       14s     -165 .. 63          381, -100, -326
+  6 r20261030-24814d-t06   controller fault       44s     -360 .. 63          228, -254, -98
+  7 r20261030-24814d-t07   controller fault       14s     -165 .. 63          381, -100, -326
+  8 r20261030-24814d-t09   controller fault       38s     -358 .. 63          226, -256, -97
+Totals: 9 recorded rollouts; controller faults 8; ended by operator 1
+
+TwinCheck checks per rollout (pre_pick / post_grasp / post_place)
+16:16:55  r20261030-24814d-t00   trial    trial 1   cube      aim [380.0, -100.0, 0.0]
+16:16:55  r20261030-24814d-t00   decision trial 1   cube   pre_pick   FAIL  cube is off the pick point by 12 mm, 2 deg; this pick will likely miss   [camera saw [391.3, -104.9, 2.0]]
+16:17:11  r20261030-24814d-t00   decision trial 1   cube   post_grasp FAIL  missed grasp: gripper is empty
+16:17:23  r20261030-24814d-t00   decision trial 1   cube   post_place PASS  cube in bin_cubes   [camera saw [267.5, 206.1, 73.4]]
+16:17:23  r20261030-24814d-t00   trial    trial 2   screw     aim [420.0, 0.0, 0.0]
+16:17:23  r20261030-24814d-t00   decision trial 2   screw  pre_pick   FAIL  screw is off the pick point by 11 mm, 17 deg; this pick will likely miss   [camera saw [430.3, 4.8, 163.1]]
+16:20:00  r20261030-24814d-t00   trial    trial 3   cube      aim [380.0, -100.0, 0.0]
+16:20:00  r20261030-24814d-t00   decision trial 3   cube   pre_pick   FAIL  cube is off the pick point by 43 mm, 10 deg; this pick will likely miss   [camera saw [417.3, -122.0, 80.4]]
+16:20:17  r20261030-24814d-t00   decision trial 3   cube   post_grasp FAIL  missed grasp: gripper is empty
+16:21:45  r20261030-24814d-t02   trial    trial 4   cube      aim [380.0, -100.0, 0.0]
+16:21:45  r20261030-24814d-t02   decision trial 4   cube   pre_pick   FAIL  cube is off the pick point by 28 mm, 20 deg; this pick will likely miss   [camera saw [363.7, -123.0, 20.2]]
+16:22:01  r20261030-24814d-t02   decision trial 4   cube   post_grasp FAIL  missed grasp: gripper is empty
+16:22:12  r20261030-24814d-t02   decision trial 4   cube   post_place FAIL  cube never left the pick area   [camera saw [363.7, -122.9, 20.2]]
+16:22:12  r20261030-24814d-t02   trial    trial 5   screw     aim [420.0, 0.0, 0.0]
+16:22:12  r20261030-24814d-t02   decision trial 5   screw  pre_pick   FAIL  screw is off the pick point by 17 mm, 38 deg; this pick will likely miss   [camera saw [437.2, 1.4, 37.5]]
+16:27:05  r20261030-24814d-t03   trial    trial 6   cube      aim [380.0, -100.0, 0.0]
+16:27:05  r20261030-24814d-t03   decision trial 6   cube   pre_pick   FAIL  cube is off the pick point by 21 mm, 21 deg; this pick will likely miss   [camera saw [378.5, -79.3, 68.5]]
+16:27:21  r20261030-24814d-t03   decision trial 6   cube   post_grasp FAIL  missed grasp: gripper is empty
+16:27:33  r20261030-24814d-t03   decision trial 6   cube   post_place FAIL  cube never left the pick area   [camera saw [386.3, -55.3, 7.5]]
+16:27:33  r20261030-24814d-t03   trial    trial 7   screw     aim [420.0, 0.0, 0.0]
+16:27:33  r20261030-24814d-t03   decision trial 7   screw  pre_pick   FAIL  screw is off the pick point by 25 mm, 20 deg; this pick will likely miss   [camera saw [434.3, 20.7, 160.2]]
+16:32:01  r20261030-24814d-t04   trial    trial 8   cube      aim [380.0, -100.0, 0.0]
+16:32:01  r20261030-24814d-t04   decision trial 8   cube   pre_pick   FAIL  cube is off the pick point by 8 mm, 32 deg; this pick will likely miss   [camera saw [384.8, -93.8, 57.8]]
+16:32:42  r20261030-24814d-t05   trial    trial 9   cube      aim [380.0, -100.0, 0.0]
+16:32:42  r20261030-24814d-t05   decision trial 9   cube   pre_pick   FAIL  cube is off the pick point by 8 mm, 36 deg; this pick will likely miss   [camera saw [384.6, -93.7, 54.1]]
+16:35:21  r20261030-24814d-t06   trial    trial 10  cube      aim [380.0, -100.0, 0.0]
+16:35:21  r20261030-24814d-t06   decision trial 10  cube   pre_pick   FAIL  cube is off the pick point by 25 mm, 21 deg; this pick will likely miss   [camera saw [403.3, -109.3, 21.3]]
+16:35:40  r20261030-24814d-t06   decision trial 10  cube   post_grasp FAIL  missed grasp: gripper is empty
+16:35:53  r20261030-24814d-t06   decision trial 10  cube   post_place FAIL  cube never left the pick area   [camera saw [403.4, -109.4, 20.1]]
+16:35:53  r20261030-24814d-t06   trial    trial 11  screw     aim [420.0, 0.0, 0.0]
+16:35:53  r20261030-24814d-t06   decision trial 11  screw  pre_pick   FAIL  screw is off the pick point by 12 mm, 7 deg; this pick will likely miss   [camera saw [423.6, -11.5, 172.9]]
+16:37:00  r20261030-24814d-t07   trial    trial 12  cube      aim [380.0, -100.0, 0.0]
+16:37:00  r20261030-24814d-t07   decision trial 12  cube   pre_pick   FAIL  cube is off the pick point by 20 mm, 31 deg; this pick will likely miss   [camera saw [389.0, -81.6, 30.6]]
+16:38:23  r20261030-24814d-t09   trial    trial 13  cube      aim [380.0, -100.0, 0.0]
+16:38:23  r20261030-24814d-t09   decision trial 13  cube   pre_pick   FAIL  cube is off the pick point by 20 mm, 2 deg; this pick will likely miss   [camera saw [375.1, -80.5, 2.0]]
+16:38:40  r20261030-24814d-t09   decision trial 13  cube   post_grasp FAIL  missed grasp: gripper is empty
+16:38:52  r20261030-24814d-t09   decision trial 13  cube   post_place FAIL  cube never left the pick area   [camera saw [375.8, -75.4, 1.8]]
+16:38:52  r20261030-24814d-t09   trial    trial 14  screw     aim [420.0, 0.0, 0.0]
+16:38:52  r20261030-24814d-t09   decision trial 14  screw  pre_pick   FAIL  screw is off the pick point by 6 mm, 34 deg; this pick will likely miss   [camera saw [418.6, 6.1, 146.5]]
+Check totals: post_grasp fail: 6, post_place fail: 4, post_place pass: 1, pre_pick fail: 14
+
+Client log (run.py output; image/speed lines removed, private links redacted)
+=== start 1 16:10:27
+2026-10-30 16:10:29,796 INFO request q3135b9 is waiting for the operator's approval ...
+2026-10-30 16:10:45,130 INFO request q3135b9 is waiting for the operator's approval ...
+2026-10-30 16:11:00,368 INFO request q3135b9 is waiting for the operator's approval ...
+2026-10-30 16:11:15,446 INFO request q3135b9 approved: run r20261030-24814d
+2026-10-30 16:11:15,447 INFO your results (scores and videos, only your team sees them): https://hackathon.sidclab.org/#key=<private>
+2026-10-30 16:11:21,589 WARNING no wrist check (FileNotFoundError: wrist reference image not found: D:\twincheck\twincheck\models\wrist_empty_ref.png): its checks will fail
+2026-10-30 16:11:21,589 INFO TwinCheck watch mode, session real_s4_blind_baseline, 3 jobs per rollout
+2026-10-30 16:16:43,666 INFO cell clock offset +0.685 s, round trip 102 ms
+2026-10-30 16:16:43,746 INFO trial r20261030-24814d-t00 (layout L1) running
+2026-10-30 16:16:55,020 INFO trial 1 trial 
+2026-10-30 16:16:55,020 WARNING trial 1 decision cube is off the pick point by 12 mm, 2 deg; this pick will likely miss
+2026-10-30 16:17:11,383 WARNING trial 1 decision missed grasp: gripper is empty
+2026-10-30 16:17:23,368 INFO trial 1 decision cube in bin_cubes
+2026-10-30 16:17:23,368 INFO trial 2 trial 
+2026-10-30 16:17:23,368 WARNING trial 2 decision screw is off the pick point by 11 mm, 17 deg; this pick will likely miss
+2026-10-30 16:17:24,903 INFO trial r20261030-24814d-t00 ended
+2026-10-30 16:19:54,612 INFO cell clock offset +0.699 s, round trip 113 ms
+2026-10-30 16:19:54,715 INFO trial r20261030-24814d-t00 (layout L1) running
+2026-10-30 16:20:00,475 INFO trial 3 trial 
+2026-10-30 16:20:00,475 WARNING trial 3 decision cube is off the pick point by 43 mm, 10 deg; this pick will likely miss
+2026-10-30 16:20:17,356 WARNING trial 3 decision missed grasp: gripper is empty
+2026-10-30 16:20:24,824 INFO trial r20261030-24814d-t00 ended
+2026-10-30 16:21:38,651 INFO cell clock offset +0.688 s, round trip 133 ms
+2026-10-30 16:21:38,765 INFO trial r20261030-24814d-t02 (layout L1) running
+2026-10-30 16:21:45,001 INFO trial 4 trial 
+2026-10-30 16:21:45,001 WARNING trial 4 decision cube is off the pick point by 28 mm, 20 deg; this pick will likely miss
+2026-10-30 16:22:01,193 WARNING trial 4 decision missed grasp: gripper is empty
+2026-10-30 16:22:12,918 WARNING trial 4 decision cube never left the pick area
+2026-10-30 16:22:12,918 INFO trial 5 trial 
+2026-10-30 16:22:12,918 WARNING trial 5 decision screw is off the pick point by 17 mm, 38 deg; this pick will likely miss
+2026-10-30 16:22:14,495 INFO trial r20261030-24814d-t02 ended
+2026-10-30 16:26:59,064 INFO cell clock offset +0.673 s, round trip 102 ms
+2026-10-30 16:26:59,165 INFO trial r20261030-24814d-t03 (layout L1) running
+2026-10-30 16:27:05,472 INFO trial 6 trial 
+2026-10-30 16:27:05,473 WARNING trial 6 decision cube is off the pick point by 21 mm, 21 deg; this pick will likely miss
+2026-10-30 16:27:21,547 WARNING trial 6 decision missed grasp: gripper is empty
+2026-10-30 16:27:33,930 WARNING trial 6 decision cube never left the pick area
+2026-10-30 16:27:33,930 INFO trial 7 trial 
+2026-10-30 16:27:33,932 WARNING trial 7 decision screw is off the pick point by 25 mm, 20 deg; this pick will likely miss
+2026-10-30 16:27:35,543 INFO trial r20261030-24814d-t03 ended
+2026-10-30 16:31:55,277 INFO cell clock offset +0.698 s, round trip 103 ms
+2026-10-30 16:31:55,413 INFO trial r20261030-24814d-t04 (layout L1) running
+2026-10-30 16:32:01,975 INFO trial 8 trial 
+2026-10-30 16:32:01,976 WARNING trial 8 decision cube is off the pick point by 8 mm, 32 deg; this pick will likely miss
+2026-10-30 16:32:09,342 INFO trial r20261030-24814d-t04 ended
+2026-10-30 16:32:35,960 INFO cell clock offset +0.705 s, round trip 101 ms
+2026-10-30 16:32:36,063 INFO trial r20261030-24814d-t05 (layout L1) running
+2026-10-30 16:32:42,404 INFO trial 9 trial 
+2026-10-30 16:32:42,404 WARNING trial 9 decision cube is off the pick point by 8 mm, 36 deg; this pick will likely miss
+2026-10-30 16:32:49,992 INFO trial r20261030-24814d-t05 ended
+2026-10-30 16:35:11,203 INFO cell clock offset +0.701 s, round trip 104 ms
+2026-10-30 16:35:11,306 INFO trial r20261030-24814d-t06 (layout L1) running
+2026-10-30 16:35:21,945 INFO trial 10 trial 
+2026-10-30 16:35:21,945 WARNING trial 10 decision cube is off the pick point by 25 mm, 21 deg; this pick will likely miss
+2026-10-30 16:35:40,597 WARNING trial 10 decision missed grasp: gripper is empty
+2026-10-30 16:35:53,354 WARNING trial 10 decision cube never left the pick area
+2026-10-30 16:35:53,354 INFO trial 11 trial 
+2026-10-30 16:35:53,354 WARNING trial 11 decision screw is off the pick point by 12 mm, 7 deg; this pick will likely miss
+2026-10-30 16:35:55,020 INFO trial r20261030-24814d-t06 ended
+2026-10-30 16:36:54,319 INFO cell clock offset +0.694 s, round trip 102 ms
+2026-10-30 16:36:54,421 INFO trial r20261030-24814d-t07 (layout L1) running
+2026-10-30 16:37:00,623 INFO trial 12 trial 
+2026-10-30 16:37:00,623 WARNING trial 12 decision cube is off the pick point by 20 mm, 31 deg; this pick will likely miss
+2026-10-30 16:37:08,096 INFO trial r20261030-24814d-t07 ended
+2026-10-30 16:38:16,036 INFO cell clock offset +0.701 s, round trip 100 ms
+2026-10-30 16:38:16,137 INFO trial r20261030-24814d-t09 (layout L1) running
+2026-10-30 16:38:23,295 INFO trial 13 trial 
+2026-10-30 16:38:23,296 WARNING trial 13 decision cube is off the pick point by 20 mm, 2 deg; this pick will likely miss
+2026-10-30 16:38:40,256 WARNING trial 13 decision missed grasp: gripper is empty
+2026-10-30 16:38:52,433 WARNING trial 13 decision cube never left the pick area
+2026-10-30 16:38:52,433 INFO trial 14 trial 
+2026-10-30 16:38:52,434 WARNING trial 14 decision screw is off the pick point by 6 mm, 34 deg; this pick will likely miss
+2026-10-30 16:38:54,130 INFO trial r20261030-24814d-t09 ended
+2026-10-30 16:39:38,885 INFO all trials finished

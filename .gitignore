@@ -31,3 +31,6 @@ __pycache__/
 fanuc_er4ia_hackathon_starter_v05/
 Physical AI Hackathon*.pdf
 .vscode/
+
+# submission videos are small and part of the evidence
+!submission/**/*.mp4
