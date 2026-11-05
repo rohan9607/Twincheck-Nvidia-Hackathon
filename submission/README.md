@@ -42,3 +42,7 @@ and TwinCheck's live log at the bottom.
 
 Runs on hackathon.sidclab.org: TwinCheck `r20261031-79333b`, baseline `r20261030-dcd07a`.
 Real data was used only for testing and analysis; all training data came from Isaac Sim.
+
+In Guide rollouts 6 and 7, our post-place check reported "screw in the wrong bin", but the operator scored both as fully
+sorted, so those were false alarms. In rollout 8 the check flagged the screw on the edge of its bin, and the controller
+then faulted on the third pick.

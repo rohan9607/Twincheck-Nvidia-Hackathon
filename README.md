@@ -42,16 +42,17 @@ play at real speed and Guide clips at 2x. Rollout N used the same layout in both
 | 9 | Fail (controller fault), 13 s | 1 of 1 checks failed | [clip](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/rollouts/baseline/rollout_09.mp4) | **Success**, 94 s | 9 of 9 | [clip (2x)](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/rollouts/guide/rollout_09.mp4) |
 | 10 | Fail (controller fault), 14 s | 1 of 1 checks failed | [clip](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/rollouts/baseline/rollout_10.mp4) | **Success**, 95 s | 8 of 8 | [clip (2x)](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/rollouts/guide/rollout_10.mp4) |
 
-The baseline ran in Watch mode, so its checks only warn and never steer. In Guide, a check can fail inside a successful
-rollout, for example when a part stacked in the bin hides the one below it from the camera.
+The baseline ran in Watch mode, so its checks only warn and never steer. In Guide rollouts 6 and 7, our post-place
+check reported "screw in the wrong bin", but the operator scored both as fully sorted, so those were false alarms. In
+rollout 8 the check flagged the screw on the edge of its bin, and the controller then faulted on the third pick.
 
 More evidence:
 - Longer, higher-resolution clips of rollout 1: [baseline](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/evidence/evidence_baseline_r1.mp4) ·
   [Guide](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/evidence/evidence_guide_r1.mp4)
 - Rollout 1 layout, taught spots vs measured positions: [baseline](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/evidence/layout_baseline.png) ·
   [Guide](https://github.com/rohan9607/Twincheck-Nvidia-Hackathon/blob/main/submission/evidence/layout_guide.png)
-- Every check of every real rollout: [`runs/cell/real_s5_blind_v2.jsonl`](runs/cell/real_s5_blind_v2.jsonl),
-  [`runs/cell/real_s6_guide_v6.jsonl`](runs/cell/real_s6_guide_v6.jsonl); client logs in [`submission/logs/`](submission/logs/)
+- Every check of every real rollout: [`real_s5_blind_v2.jsonl`](submission/logs/real_s5_blind_v2.jsonl),
+  [`real_s6_guide_v6.jsonl`](submission/logs/real_s6_guide_v6.jsonl); client logs in [`submission/logs/`](submission/logs/)
 - Summary: [`submission/TwinCheck_Summary.pdf`](submission/TwinCheck_Summary.pdf) · presentation:
   [`submission/TwinCheck_Wicked_presentation.pptx`](submission/TwinCheck_Wicked_presentation.pptx) (open in desktop PowerPoint to play its videos)
 
@@ -88,8 +89,9 @@ cell_policy/            TwinCheck as the organizers' policy.py, perception, plac
 sim/                    Isaac Sim: twin cell, synthetic data (Replicator), finger fit, twin runtime
 perception/             training, label checks, evaluation, TensorRT export
 models/                 detector versions v1-v4
-runs/cell/              logs of every mock, twin and real run
+submission/logs/        logs of the two official real runs (every check, with detections)
 submission/             summary, presentation, evidence clips, rollout clips, logs
+demo/                   poster-session demo: index.html (offline TV page), live_detect.py, DEMO_SCRIPT.md
 ros2_ws/, calib/, dashboard/, db/, scripts/, docs/   ROS 2 pipeline, calibration tools, operator dashboard, results database
 ```
 

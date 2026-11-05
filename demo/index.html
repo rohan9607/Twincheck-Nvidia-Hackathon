@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TwinCheck Demo</title>
+<style>
+:root {
+  --bg: #15181b; --panel: #1f2428; --panel2: #272d32; --line: #353c42;
+  --text: #f3f5f6; --muted: #a9b2b9; --faint: #6f7a83;
+  --yellow: #f2b705; --green: #34b36a; --red: #e5534b; --blue: #4a8fe3;
+  --r: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: "Segoe UI", Inter, system-ui, -apple-system, Arial, sans-serif;
+  font-size: clamp(14px, 1.05vw, 22px); line-height: 1.35; overflow: hidden; }
+header { display: flex; align-items: center; gap: 1.4em; padding: .7em 1.4em; border-bottom: 1px solid var(--line); height: 4.2em; }
+.brand { display: flex; align-items: baseline; gap: .7em; white-space: nowrap; }
+.brand b { font-size: 1.6em; letter-spacing: .01em; }
+.brand b span { color: var(--yellow); }
+.brand small { color: var(--muted); font-size: .9em; }
+nav { display: flex; gap: .35em; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+nav button { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: .38em .95em;
+  font: inherit; font-size: .9em; cursor: pointer; white-space: nowrap; }
+nav button kbd { color: var(--faint); font-family: inherit; margin-right: .35em; }
+nav button.on { background: var(--yellow); color: #1b1b1b; border-color: var(--yellow); font-weight: 600; }
+nav button.on kbd { color: #5a4a00; }
+main { height: calc(100% - 4.2em - 2.2em); position: relative; }
+section { position: absolute; inset: 0; padding: 1.2em 1.4em; display: none; overflow: auto; }
+section.on { display: block; }
+footer { height: 2.2em; display: flex; align-items: center; gap: 1.5em; padding: 0 1.4em; color: var(--faint); font-size: .8em;
+  border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; }
+h1 { font-size: 2.3em; line-height: 1.12; letter-spacing: -.01em; }
+h2 { font-size: 1.55em; line-height: 1.15; margin-bottom: .5em; }
+h3 { font-size: 1.05em; margin-bottom: .3em; }
+p, li { color: var(--muted); }
+strong, b { color: var(--text); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 1em 1.1em; }
+.eyebrow { color: var(--yellow); font-size: .8em; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .4em; }
+.grid { display: grid; gap: 1em; }
+.ok { color: var(--green); } .bad { color: var(--red); } .warn { color: var(--yellow); }
+img { display: block; max-width: 100%; border-radius: 10px; }
+video { display: block; width: 100%; border-radius: 10px; background: #000; }
+
+/* overview */
+#ov { display: none; }
+#ov.on { display: grid; grid-template-columns: 1.05fr 1.25fr .8fr; grid-template-rows: auto 1fr; gap: 1em; }
+.stat { display: flex; gap: .8em; align-items: baseline; padding: .55em 0; border-bottom: 1px solid var(--line); }
+.stat:last-child { border-bottom: 0; }
+.stat big { font-size: 1.6em; font-weight: 700; min-width: 4.6em; color: var(--yellow); white-space: nowrap; }
+.hero { display: flex; flex-direction: column; gap: .9em; }
+.score { display: grid; grid-template-columns: 1fr 1fr; gap: .8em; }
+.score .card { text-align: center; }
+.score big { display: block; font-size: 4.6em; font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+.score small { color: var(--muted); }
+.ci { margin-top: .2em; }
+.ci .row { display: grid; grid-template-columns: 9.5em 1fr 4.6em; align-items: center; gap: .6em; margin: .4em 0; font-size: .9em; }
+.ci .track { position: relative; height: 1.1em; background: var(--panel2); border-radius: 6px; }
+.ci .band { position: absolute; top: 0; bottom: 0; border-radius: 6px; }
+.ci .dot { position: absolute; top: -.15em; width: .2em; height: 1.4em; background: var(--text); border-radius: 2px; }
+.ci .axis { display: grid; grid-template-columns: 9.5em 1fr 4.6em; gap: .6em; color: var(--faint); font-size: .75em; }
+.ci .axis div:nth-child(2) { display: flex; justify-content: space-between; }
+.mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6em; }
+.mini .card { padding: .6em .8em; }
+.mini big { font-size: 1.5em; font-weight: 700; display: block; }
+.ovvideo { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 29em; gap: 1em; align-items: center; }
+.photo { position: relative; overflow: hidden; padding: 0; min-height: 12em; }
+.photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: var(--r); }
+.qr { display: flex; gap: .9em; align-items: center; margin-top: .8em; }
+.qr img { width: 7em; height: 7em; border-radius: 6px; }
+
+/* side by side */
+.sbs { display: grid; grid-template-columns: 1fr 26em; gap: 1em; height: 100%; }
+.chips { display: flex; gap: .4em; flex-wrap: wrap; margin-bottom: .8em; align-items: center; }
+.chip { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 10px; padding: .3em .6em; font: inherit;
+  cursor: pointer; display: grid; grid-template-columns: auto auto; column-gap: .45em; align-items: center; font-size: .9em; }
+.chip.on { border-color: var(--yellow); box-shadow: 0 0 0 2px var(--yellow) inset; }
+.chip .n { font-weight: 700; grid-row: span 2; font-size: 1.15em; }
+.chip i { font-style: normal; font-size: .78em; line-height: 1.15; }
+.lane { margin-bottom: .5em; }
+.lane-head { display: flex; align-items: center; gap: .8em; margin-bottom: .35em; }
+.badge { border-radius: 999px; padding: .12em .7em; font-size: .85em; font-weight: 700; }
+.badge.ok { background: rgba(52,179,106,.16); } .badge.bad { background: rgba(229,83,75,.16); }
+.controls { display: flex; gap: .5em; align-items: center; flex-wrap: wrap; }
+.controls button { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: .4em .9em;
+  font: inherit; cursor: pointer; }
+.controls button.on { background: var(--yellow); color: #1b1b1b; border-color: var(--yellow); font-weight: 600; }
+.clock { font-variant-numeric: tabular-nums; color: var(--muted); margin-left: auto; }
+.facts dt { color: var(--faint); font-size: .8em; text-transform: uppercase; letter-spacing: .08em; margin-top: .8em; }
+.facts dd { color: var(--text); }
+
+/* sim to real */
+.s2r { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
+.s2r img { width: 100%; height: 16.5em; object-fit: contain; background: #0d0f11; }
+.ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8em; margin-top: 1em; }
+.ladder .card b { color: var(--yellow); }
+table { border-collapse: collapse; width: 100%; font-size: .9em; }
+th { text-align: left; color: var(--faint); font-weight: 600; padding: .35em .5em; border-bottom: 1px solid var(--line); }
+td { padding: .35em .5em; border-bottom: 1px solid var(--line); color: var(--muted); }
+code { background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: .05em .4em; color: var(--text);
+  font-family: Consolas, "Cascadia Mono", monospace; font-size: .9em; }
+
+/* how it works */
+.how { display: grid; grid-template-columns: 1.45fr 1fr; gap: 1em; }
+.steps { display: grid; gap: .6em; }
+.step { display: grid; grid-template-columns: 2.2em 1fr; gap: .7em; align-items: start; }
+.step .num { width: 2.2em; height: 2.2em; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #1b1b1b; }
+.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6em; margin-top: 1em; }
+.modes .card h3 { margin-bottom: .2em; }
+
+/* value & limits */
+.cols3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
+ul.clean { list-style: none; display: grid; gap: .5em; }
+ul.clean li { padding-left: 1.1em; position: relative; }
+ul.clean li::before { content: ""; position: absolute; left: 0; top: .55em; width: .45em; height: .45em; border-radius: 2px; background: var(--yellow); }
+.big-quote { font-size: 1.6em; line-height: 1.25; color: var(--text); font-weight: 600; }
+
+@media (max-width: 1100px) {
+  body { overflow: auto; font-size: 15px; }
+  header { flex-wrap: wrap; height: auto; }
+  main { height: auto; } section { position: static; }
+  #ov.on, .sbs, .s2r, .how, .cols3, .cols2, .ladder, .ovvideo, .modes, .mini { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>Twin<span>Check</span></b><small>Team Wicked · Sim-trained grasping that checks every pick · FANUC ER-4iA</small></div>
+  <nav id="nav"></nav>
+</header>
+<main>
+
+<!-- 1 · OVERVIEW -->
+<section id="ov" data-title="Overview">
+  <div class="card">
+    <div class="eyebrow">The problem</div>
+    <h2>Taught robots fail silently when parts move</h2>
+    <p>Factories teach a robot fixed spots and replay them. On a high-mix line, parts never land exactly there: the robot grabs air or crashes, and nobody notices until a bin is empty or the cell stops.</p>
+    <div style="margin-top:.6em">
+      <div class="stat"><big>±3 mm</big><span>room the 12 mm jaws leave around a 10 mm cube</span></div>
+      <div class="stat"><big>5–33 mm</big><span>how far hand-placed parts sat from the taught spot on the real cell</span></div>
+      <div class="stat"><big>1–3 cm</big><span>how far hand-placed bins sat from their planned spot</span></div>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="card">
+      <div class="eyebrow">Real FANUC cell · same 10 layouts · operator-scored (Oct 30)</div>
+      <div class="score">
+        <div><big class="bad">0/10</big><small>blind taught program</small></div>
+        <div><big class="ok">9/10</big><small>TwinCheck Guide</small></div>
+      </div>
+      <div class="ci">
+        <div class="row"><span>Blind program</span><div class="track"><div class="band" style="left:0;width:27.8%;background:rgba(229,83,75,.45)"></div><div class="dot" style="left:0"></div></div><span>0–28%</span></div>
+        <div class="row"><span>TwinCheck</span><div class="track"><div class="band" style="left:59.6%;width:38.6%;background:rgba(52,179,106,.5)"></div><div class="dot" style="left:89.8%"></div></div><span>60–98%</span></div>
+        <div class="axis"><div>95% Wilson interval</div><div><span>0%</span><span>50%</span><span>100%</span></div><div></div></div>
+      </div>
+    </div>
+    <div class="mini">
+      <div class="card"><big>1 vs 7</big><small>controller faults</small></div>
+      <div class="card"><big>20 / 20</big><small>blind picks flagged "will miss" before the arm moved (19 did)</small></div>
+      <div class="card"><big>0 real</big><small>training images: the AI learned only in Isaac Sim</small></div>
+    </div>
+  </div>
+  <div class="card photo"><img src="assets/cell_photo.jpg" alt="The FANUC ER-4iA cell with the two-finger gripper and two bins"></div>
+  <div class="ovvideo card">
+    <video id="ovv" src="../submission/rollouts/guide/rollout_01.mp4" muted loop autoplay playsinline></video>
+    <div>
+      <div class="eyebrow">Playing: TwinCheck Guide, rollout 1 (2x)</div>
+      <p>Top, wrist and side cameras from the cell's own recording. The bar underneath is TwinCheck's live log: <b class="ok">green</b> = check passed, <b class="bad">red</b> = check failed.</p>
+      <p style="margin-top:.5em">Press <b>2</b> to watch it next to the blind program on the same layout.</p>
+      <div class="qr"><img src="assets/repo_qr.png" alt="QR code to the GitHub repo"><small style="color:var(--muted)">Code, all 20 rollout clips and the logs</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · SIDE BY SIDE -->
+<section id="sbs" data-title="Side by side">
+  <div class="sbs">
+    <div>
+      <div class="chips" id="chips"><span style="color:var(--faint);margin-right:.3em">Rollout</span></div>
+      <div class="lane">
+        <div class="lane-head"><b>Blind taught program</b><span class="badge" id="bBadge"></span><span style="color:var(--faint)" id="bRun"></span></div>
+        <video id="vb" muted playsinline preload="auto"></video>
+      </div>
+      <div class="lane">
+        <div class="lane-head"><b>TwinCheck Guide</b><span class="badge" id="gBadge"></span><span style="color:var(--faint)" id="gRun"></span></div>
+        <video id="vg" muted playsinline preload="auto"></video>
+      </div>
+      <div class="controls">
+        <button id="play">Play</button><button id="restart">Restart</button>
+        <span style="color:var(--faint);margin-left:.6em">Speed</span>
+        <button data-speed="1">Real time</button><button data-speed="2" class="on">2x</button><button data-speed="4">4x</button>
+        <span class="clock" id="clock">rollout time 0.0 s</span>
+      </div>
+    </div>
+    <div class="card facts" id="facts"></div>
+  </div>
+</section>
+
+<!-- 3 · SIM TO REAL -->
+<section id="s2r" data-title="Sim → Real">
+  <h2>The AI never saw a real training image</h2>
+  <div class="s2r">
+    <div class="card"><div class="eyebrow">Trained on · Isaac Sim render, labels computed from the 3D scene</div>
+      <img src="assets/synthetic_labels.jpg" alt="Isaac Sim render of the cell with automatic labels"></div>
+    <div class="card"><div class="eyebrow">Works on · the real cell camera (test only)</div>
+      <img src="assets/real_detect.jpg" alt="Real cell camera image with the model's detections"></div>
+  </div>
+  <div class="ladder">
+    <div class="card"><b>v1 · 500 renders</b><p>One arm pose, yellow cubes. Found only 77% of test cubes: the twin was too easy.</p></div>
+    <div class="card"><b>v2 · 2,000 renders</b><p>Random arm poses, 3 cube colours, clutter, distractors, wide lighting: 100% found, 0.2 mm.</p></div>
+    <div class="card"><b>v3 · +2,000 renders</b><p>Parts resting inside bins, for the "did it land?" check: in-bin parts found 53% → 100%.</p></div>
+    <div class="card"><b>v4 · 3,000 renders</b><p>Bins as a class, anywhere and any colour; paler cubes: bins found 100%, 0.5 mm.</p></div>
+  </div>
+  <div class="cols2" style="margin-top:1em">
+    <div class="card">
+      <h3>Unseen simulator exams (100 images each)</h3>
+      <table>
+        <tr><th>Exam</th><th>Class</th><th>Found</th><th>Typical error</th></tr>
+        <tr><td>Bins anywhere, parts in bins</td><td>Bin</td><td>100%</td><td>0.5 mm</td></tr>
+        <tr><td>Bins anywhere, parts in bins</td><td>Cube</td><td>99.4%</td><td>0.3 mm</td></tr>
+        <tr><td>Bins anywhere, parts in bins</td><td>Screw</td><td>100%</td><td>0.3 mm</td></tr>
+        <tr><td>Parts on the table</td><td>Cube / screw</td><td>100%</td><td>0.2 mm</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>The model</h3>
+      <p>Ultralytics <b>YOLO11n-OBB</b>, 2.66 M parameters, 5.7 MB. Oriented boxes give each part's centre <i>and</i> angle. v4: 3,000 renders (~12,000 labels), 1280 px, 60 epochs, ~1.7 h on an <b>NVIDIA DGX Spark</b>. Runs at ~20 ms per frame on a laptop RTX 5060.</p>
+      <p style="margin-top:.6em"><b>Live on this laptop:</b> <code>python demo/live_detect.py</code></p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · HOW IT WORKS -->
+<section id="how" data-title="How it works">
+  <div class="how">
+    <div class="card"><div class="eyebrow">System architecture</div><img src="assets/system_architecture.png" alt="Offline: twin, renders, training, twin test bench. Online: perception, checks, motion planner on the real cell."></div>
+    <div>
+      <h2>Look before every pick, check after it</h2>
+      <div class="steps">
+        <div class="step"><div class="num" style="background:var(--blue)">1</div><div><h3>Look</h3><p>The table camera finds every part and bin, in robot millimetres (organizers' calibration).</p></div></div>
+        <div class="step"><div class="num" style="background:var(--yellow)">2</div><div><h3>Act</h3><p>The arm aims where the part really is, turns the fingers to its angle, and waits until it has really arrived (the real arm lags ~0.8 s).</p></div></div>
+        <div class="step"><div class="num" style="background:var(--green)">3</div><div><h3>Check ×3</h3><p>Part there? &nbsp;In the hand? &nbsp;In the right bin? The twin is the answer key; the camera shows what really happened.</p></div></div>
+        <div class="step"><div class="num" style="background:var(--red)">4</div><div><h3>Recover</h3><p>Missed grasp: retry from a fresh look. Anything else: alert the operator.</p></div></div>
+      </div>
+      <div class="modes">
+        <div class="card"><h3>Baseline</h3><p>Today's taught program. Our comparison point.</p></div>
+        <div class="card"><h3>Watch</h3><p>Same motion plus alerts. <b>No reprogramming</b>: bolts on to legacy robots.</p></div>
+        <div class="card"><h3>Guide</h3><p>Camera-guided picks, real bins, retries.</p></div>
+      </div>
+      <p style="margin-top:1em">Every change was tested closed-loop in the twin first (20/20 rollouts) before using robot time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · WHY IT MATTERS -->
+<section id="val" data-title="Why it matters">
+  <h2>Value for manufacturers</h2>
+  <div class="cols3">
+    <div class="card"><div class="eyebrow">Changeover</div><h3>~2 h of compute, 0 robot hours</h3><p>A new part goes from its 3D model to a working detector: render, train, deploy. We added the bin class this way with ~15 min of rendering and ~1.7 h of training, with no re-teaching on the line.</p></div>
+    <div class="card"><div class="eyebrow">Failures caught early</div><h3>20 / 20 blind misses flagged in advance</h3><p>Running beside the unchanged blind program (Watch), TwinCheck warned "will likely miss" before every pick. 19 really missed.</p></div>
+    <div class="card"><div class="eyebrow">Downtime avoided</div><h3>Re-aims instead of crashing</h3><p>1 controller fault vs 7. Illustrative cell: 2,000 picks/shift × 5% off-position = 100 misses; at ~3 min reset each ≈ 5 h lost per shift. (Assumptions; replace with plant data.)</p></div>
+  </div>
+  <div class="cols2" style="margin-top:1em">
+    <div class="card">
+      <h3>What adoption takes</h3>
+      <ul class="clean">
+        <li><b>Cameras + a GPU PC.</b> The model runs on a laptop GPU.</li>
+        <li><b>A 3D model of each part.</b> Training images are rendered in Isaac Sim, so no line time is needed.</li>
+        <li><b>Start with Watch.</b> Alerts on the existing program, so operators build trust from logged checks.</li>
+        <li><b>Switch on Guide</b> where the controller accepts external targets.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Generalizes and scales</h3>
+      <ul class="clean">
+        <li><b>New products:</b> a new part is a new 3D model, not a new robot program. That's the high-mix changeover Rockwell asked about.</li>
+        <li><b>Legacy equipment:</b> Watch needs no controller access, so it fits robots that are decades old.</li>
+        <li><b>Operator trust:</b> every check is logged with its camera frame, expected vs. observed.</li>
+        <li><b>Broader impact:</b> sim-first means fewer crashes, less scrap, and less expert time spent re-teaching.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1em;display:grid;grid-template-columns:auto 1fr;gap:1.2em;align-items:center">
+    <img src="assets/layouts_both.jpg" alt="Rollout 1 layout: the blind program reached the taught spots, TwinCheck went to the measured parts and bins" style="height:13em;background:#fff">
+    <div><div class="eyebrow">Same setup, different outcome (rollout 1)</div>
+      <p>Parts sat 19–23 mm and bins 39–40 mm from where a program was taught to reach. The blind program goes to the red X every time. TwinCheck goes to whatever the camera sees, so the difference is the policy, not the placement.</p></div>
+  </div>
+</section>
+
+<!-- 6 · LIMITS -->
+<section id="lim" data-title="Limits & next">
+  <div class="cols2">
+    <div class="card">
+      <div class="eyebrow">Where it still falls short</div>
+      <ul class="clean">
+        <li><b>Small sample:</b> 10 real rollouts per condition, so the intervals are wide (60–98%).</li>
+        <li><b>The one failure:</b> rollout 8 hit a controller fault on its third pick, after the screw landed on the edge of its bin (our check flagged it).</li>
+        <li><b>Check false alarms:</b> in 2 rollouts the operator scored as sorted, our post-place check said "screw in the wrong bin". Bins seen at an angle are still hard.</li>
+        <li><b>Speed:</b> the arm is capped at ~55 mm/s, so a 3-part sort takes 96.5 s.</li>
+        <li><b>Parts:</b> only parts that fit the 12 mm jaws (10 mm cubes, M6 screws).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="eyebrow">Next</div>
+      <ul class="clean">
+        <li>Wrist-camera grasp check trained in the twin</li>
+        <li>More real rollouts for tighter confidence intervals</li>
+        <li>New parts via custom fingers (vials, caps)</li>
+        <li>A live operator dashboard for Watch alerts</li>
+      </ul>
+      <div class="big-quote" style="margin-top:1.4em">Trained in simulation.<br>Checked on every pick.<br><span style="color:var(--yellow)">Proven on a real FANUC arm.</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1em">
+    <p>Runs on hackathon.sidclab.org: TwinCheck <code>r20261031-79333b</code>, blind baseline <code>r20261030-dcd07a</code>. Code, every rollout clip and the logs are at <b>github.com/rohan9607/Twincheck-Nvidia-Hackathon</b>. Real data was used only for testing.</p>
+    <div class="qr"><img src="assets/repo_qr.png" alt="QR code to the GitHub repo"><small style="color:var(--muted)">Scan for the code, all 20 rollout clips and the logs</small></div>
+  </div>
+</section>
+</main>
+<footer>
+  <span>Keys: <b>1–6</b> switch views · <b>Space</b> play/pause · <b>← →</b> rollout · <b>F</b> full screen</span>
+  <span style="margin-left:auto">Rockwell Automation + NVIDIA Physical AI Hackathon 2026 · Dataset 3: Grasping and Sorting</span>
+</footer>
+
+<script src="assets/rollouts.js"></script>
+<script>
+const views = [...document.querySelectorAll("section")];
+const nav = document.getElementById("nav");
+views.forEach((v, i) => {
+  const b = document.createElement("button");
+  b.innerHTML = `<kbd>${i + 1}</kbd>${v.dataset.title}`;
+  b.onclick = () => show(i);
+  nav.appendChild(b);
+});
+let current = 0;
+function show(i) {
+  current = i;
+  views.forEach((v, k) => v.classList.toggle("on", k === i));
+  [...nav.children].forEach((b, k) => b.classList.toggle("on", k === i));
+  const ov = document.getElementById("ovv");
+  if (views[i].id === "ov") ov.play().catch(() => {}); else ov.pause();
+  if (views[i].id !== "sbs") pause();
+  try { localStorage.setItem("tc-view", i); } catch (e) {}
+}
+
+// side by side: baseline clips are real time, Guide clips are encoded at 2x
+const vb = document.getElementById("vb"), vg = document.getElementById("vg");
+const R = window.ROLLOUTS || [];
+let idx = 0, speed = 2, playing = false;
+const nice = o => o === "SUCCESS" ? "Success" : o === "FAIL" ? "Fail" : "Fail · controller fault";
+const cls = o => o === "SUCCESS" ? "ok" : "bad";
+const chips = document.getElementById("chips");
+R.forEach((r, i) => {
+  const c = document.createElement("button");
+  c.className = "chip";
+  c.innerHTML = `<span class="n">${r.n}</span><i class="${cls(r.b.outcome)}">B ${r.b.outcome === "SUCCESS" ? "✓" : "✗"}</i><i class="${cls(r.g.outcome)}">G ${r.g.outcome === "SUCCESS" ? "✓" : "✗"}</i>`;
+  c.onclick = () => load(i, true);
+  chips.appendChild(c);
+});
+function load(i, autoplay) {
+  idx = (i + R.length) % R.length;
+  const r = R[idx];
+  [...chips.querySelectorAll(".chip")].forEach((c, k) => c.classList.toggle("on", k === idx));
+  vb.src = r.b.file; vg.src = r.g.file;
+  for (const [id, o] of [["bBadge", r.b.outcome], ["gBadge", r.g.outcome]]) {
+    const el = document.getElementById(id); el.textContent = nice(o); el.className = "badge " + cls(o);
+  }
+  document.getElementById("bRun").textContent = `${r.b.trial} · ${r.b.s} s`;
+  document.getElementById("gRun").textContent = `${r.g.trial} · ${r.g.s} s`;
+  const off = r.b.pre_err.length ? r.b.pre_err.map(e => e + " mm").join(", ") : "–";
+  const gChecks = `${r.g.pass} of ${r.g.pass + r.g.fail} passed` + (r.g.retries ? `, ${r.g.retries} retry` : "");
+  let gNote = "";
+  if (r.g.fail && r.g.outcome === "SUCCESS") gNote = "<dd style='color:var(--muted);font-size:.85em;margin-top:.3em'>The failed check was a false alarm: our post-place check placed the screw in the wrong bin, but the operator scored the sort complete.</dd>";
+  if (r.g.outcome !== "SUCCESS") gNote = "<dd style='color:var(--muted);font-size:.85em;margin-top:.3em'>The screw landed on the edge of its bin (flagged), then the controller faulted on the third pick.</dd>";
+  document.getElementById("facts").innerHTML = `
+    <div class="eyebrow">Rollout ${r.n} · same layout in both runs</div>
+    <dl>
+      <dt>Blind program</dt><dd class="${cls(r.b.outcome)}"><b>${nice(r.b.outcome)}</b> after ${r.b.s} s</dd>
+      <dt>Parts vs taught spots (pre-pick check)</dt><dd>${off} off · jaws allow ~3 mm</dd>
+      <dt>Watch warnings</dt><dd>${r.b.fail} of ${r.b.pass + r.b.fail} checks failed${r.b.fail ? ": flagged before the arm moved" : ""}</dd>
+      <dt>TwinCheck Guide</dt><dd class="${cls(r.g.outcome)}"><b>${nice(r.g.outcome)}</b> in ${r.g.s} s</dd>
+      <dt>Guide checks</dt><dd>${gChecks}</dd>${gNote}
+    </dl>
+    <p style="margin-top:1.2em;font-size:.85em">Official scores by the organizers' operator. Clips come from the cell's own recording; cameras are time-synced.</p>`;
+  vb.load(); vg.load();
+  setSpeed(speed);
+  if (autoplay) { Promise.all([once(vb), once(vg)]).then(() => play()); } else pause();
+}
+const once = v => new Promise(res => v.readyState >= 2 ? res() : v.addEventListener("loadeddata", res, { once: true }));
+function setSpeed(s) {
+  speed = s;
+  vb.playbackRate = s; vg.playbackRate = s / 2;
+  document.querySelectorAll("[data-speed]").forEach(b => b.classList.toggle("on", +b.dataset.speed === s));
+}
+function play() { playing = true; vb.play().catch(() => {}); vg.play().catch(() => {}); document.getElementById("play").textContent = "Pause"; }
+function pause() { playing = false; vb.pause(); vg.pause(); document.getElementById("play").textContent = "Play"; }
+function restart() { vb.currentTime = 0; vg.currentTime = 0; play(); }
+document.getElementById("play").onclick = () => playing ? pause() : play();
+document.getElementById("restart").onclick = restart;
+document.querySelectorAll("[data-speed]").forEach(b => b.onclick = () => setSpeed(+b.dataset.speed));
+setInterval(() => {
+  const t = Math.max(vb.currentTime, vg.currentTime * 2);
+  document.getElementById("clock").textContent = `rollout time ${t.toFixed(1)} s`;
+  if (playing && vb.ended && vg.ended) pause();
+}, 100);
+
+document.addEventListener("keydown", e => {
+  if (e.key >= "1" && e.key <= String(views.length)) show(+e.key - 1);
+  else if (e.key === "f" || e.key === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  else if (views[current].id === "sbs") {
+    if (e.key === " ") { e.preventDefault(); playing ? pause() : play(); }
+    else if (e.key === "ArrowRight") load(idx + 1, true);
+    else if (e.key === "ArrowLeft") load(idx - 1, true);
+    else if (e.key === "r") restart();
+  }
+});
+load(0, false);
+let start = 0;
+try { start = +(localStorage.getItem("tc-view") || 0); } catch (e) {}
+if (/^#\d$/.test(location.hash)) start = +location.hash[1] - 1;
+show(start < views.length ? start : 0);
+</script>
+</body>
+</html>
